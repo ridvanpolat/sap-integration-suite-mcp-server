@@ -24,7 +24,6 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@rolldown/binding-darwin-arm64": "^1.2.13",
     "@types/node": "^22.14.1",
     "@types/swagger2openapi": "^7.0.4",
     "msw": "^2.7.3",
