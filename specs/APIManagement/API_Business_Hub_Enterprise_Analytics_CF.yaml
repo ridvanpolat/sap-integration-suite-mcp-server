@@ -1,0 +1,269 @@
+openapi: 3.0.0
+info: {title: Developer Hub - Analytics (CF), version: '1.0', description: 'Advanced Analytics API brings you a comprehensive data, that includes powerful analytical reporting tools to analyze your API usage, Performance and also any errors if occurred during API call.'}
+x-sap-shortText: Enables you to view API Usage and Performance Data.
+x-sap-api-type: ODATAV4
+x-odata-version: '4.0'
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/viewer/66d066d903c2473f81ec33acfe2ccdb4/Cloud/en-US/5973d4af44964c499d12739c20fca0bb.html'}
+servers:
+- {url: 'https://sandbox.api.sap.com/sapapimanagement/api/1.0/AnalyticsService', description: Developer Hub Sandbox API endpoint}
+- {url: 'https://eu20devportal.cfapps.eu20.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub US1 API endpoint}
+- {url: 'https://us20devportal.cfapps.us20.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub US20 API endpoint}
+- {url: 'https://jp20devportal.cfapps.jp20.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub jp20 API endpoint}
+- {url: 'https://ap21devportal.cfapps.ap21.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub ap21 API endpoint}
+- {url: 'https://us21devportal.cfapps.us21.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub us21 API endpoint}
+- {url: 'https://ap10devportal.cfapps.ap10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub ap10 API endpoint}
+- {url: 'https://br10devportal.cfapps.br10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub br10 API endpoint}
+- {url: 'https://jp10devportal.cfapps.jp10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub jp10 API endpoint}
+- {url: 'https://eu10devportal.cfapps.eu10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub eu10 API endpoint}
+- {url: 'https://us10devportal.cfapps.us10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub us10 API endpoint}
+- {url: 'https://ca10devportal.cfapps.ca10.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub ca10 API endpoint}
+- {url: 'https://ap11devportal.cfapps.ap11.hana.ondemand.com/api/1.0/AnalyticsService', description: Developer Hub ap11 API endpoint}
+tags:
+- {name: Results}
+paths:
+  /Results('{TimeZone}')/Set:
+    parameters:
+    - name: TimeZone
+      in: path
+      required: true
+      description: Provide a TimeZone, for example 'UTC', to see results specific to given TimeZone
+      schema: {type: string, default: UTC}
+    get:
+      summary: Gets information on API usage and Performance Metrics.
+      description: Provides detailed information on API Usage, Performance and API errors. Few of important details published are Response Time, Request Size, Error Count, Call Count, and so on.
+      tags: [Results]
+      parameters:
+      - {$ref: '#/components/parameters/top'}
+      - {$ref: '#/components/parameters/skip'}
+      - {$ref: '#/components/parameters/search'}
+      - name: $apply
+        in: query
+        description: Aggregation and Filtering behavior is triggered using the query option $apply, see [$apply](http://docs.oasis-open.org/odata/odata-data-aggregation-ext/v4.0/cs01/odata-data-aggregation-ext-v4.0-cs01.html#_Toc378326289)
+        schema: {type: string}
+      - name: $filter
+        in: query
+        description: Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)
+        schema: {type: string}
+      - {$ref: '#/components/parameters/count'}
+      - name: $orderby
+        in: query
+        description: Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [ID, ID desc, ApiProxy, ApiProxy desc, ProxyBasepath, ProxyBasepath desc, RequestUrl, RequestUrl desc, RequestMethod, RequestMethod desc, ResponseCode, ResponseCode desc, DeveloperName, DeveloperName desc, ApplicationName, ApplicationName desc, ProductName, ProductName desc, CacheHit, CacheHit desc, TargetHost, TargetHost desc, TargetUrl, TargetUrl desc, PlatformName, PlatformName desc, AgentsName, AgentsName desc, DeviceType, DeviceType desc, OsFamilyName, OsFamilyName desc, CreatedTime, CreatedTime desc, PolicyResponseTime, PolicyResponseTime desc, ResponseTime, ResponseTime desc, TargetResponseTime, TargetResponseTime desc, RequestSize, RequestSize desc, RequestProcessingLatency, RequestProcessingLatency desc, ResponseProcessingLatency, ResponseProcessingLatency desc, TargetError, TargetError desc, Errors, Errors desc, PolicyError, PolicyError desc, CallCount, CallCount desc, Year, Year desc, Month, Month desc, Day, Day desc, Week, Week desc, Hour, Hour desc, Minute, Minute desc]
+      - name: $select
+        in: query
+        description: Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [ID, ApiProxy, ProxyBasepath, RequestUrl, RequestMethod, ResponseCode, DeveloperName, ApplicationName, ProductName, CacheHit, TargetHost, TargetUrl, PlatformName, AgentsName, DeviceType, OsFamilyName, CreatedTime, PolicyResponseTime, ResponseTime, TargetResponseTime, RequestSize, RequestProcessingLatency, ResponseProcessingLatency, TargetError, Errors, PolicyError, CallCount, Year, Month, Day, Week, Hour, Minute]
+      responses:
+        '200':
+          description: Retrieved API usage and performance data
+          content:
+            application/json:
+              schema:
+                title: Collection of ResultsType
+                type: object
+                properties:
+                  value:
+                    type: array
+                    items: {$ref: '#/components/schemas/AnalyticsService.ResultsType'}
+        '401':
+          description: Provide valid Bearer token to get Authorized
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+        '400':
+          description: Request may not be compatible with OData V4 Conventions
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+        '500':
+          description: Error while processing the Request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+components:
+  securitySchemes:
+    OAuth2_ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+          scopes: {}
+  schemas:
+    error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            target: {type: string}
+            details:
+              type: array
+              items:
+                type: object
+                required: [code, message]
+                properties:
+                  code: {type: string}
+                  message: {type: string}
+                  target: {type: string}
+            innererror: {type: object, description: The structure of this object is service-specific}
+    AnalyticsService.ResultsParameters:
+      type: object
+      properties:
+        TimeZone: {type: string}
+        Set:
+          type: array
+          items: {$ref: '#/components/schemas/AnalyticsService.ResultsType'}
+      title: ResultsParameters
+    AnalyticsService.ResultsType:
+      type: object
+      properties:
+        ID: {type: string, maxLength: 40}
+        ApiProxy: {type: string, nullable: true, maxLength: 1000}
+        ProxyBasepath: {type: string, nullable: true, maxLength: 1000}
+        RequestUrl: {type: string, nullable: true, maxLength: 1024}
+        RequestMethod: {type: string, nullable: true, maxLength: 1000}
+        ResponseCode: {type: integer, nullable: true, format: int32}
+        DeveloperName: {type: string, nullable: true, maxLength: 1000}
+        ApplicationName: {type: string, nullable: true, maxLength: 1000}
+        ProductName: {type: string, nullable: true, maxLength: 1000}
+        CacheHit:
+          anyOf:
+          - {type: integer}
+          - {type: string}
+          nullable: true
+          format: int64
+          example: '42'
+        TargetHost: {type: string, nullable: true, maxLength: 1000}
+        TargetUrl: {type: string, nullable: true, maxLength: 1024}
+        PlatformName: {type: string, nullable: true, maxLength: 1000}
+        AgentsName: {type: string, nullable: true, maxLength: 1000}
+        DeviceType: {type: string, nullable: true, maxLength: 1000}
+        OsFamilyName: {type: string, nullable: true, maxLength: 1000}
+        CreatedTime: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        PolicyResponseTime:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        ResponseTime:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        TargetResponseTime:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        RequestSize:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        RequestProcessingLatency:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        ResponseProcessingLatency:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        TargetError:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        Errors:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        PolicyError:
+          anyOf:
+          - {type: number}
+          - {type: string}
+          nullable: true
+          format: double
+          example: 3.14
+        CallCount:
+          anyOf:
+          - {type: integer}
+          - {type: string}
+          nullable: true
+          format: int64
+          example: '42'
+        Year: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Month: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Day: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Week: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Hour: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Minute: {type: string, nullable: true, format: date-time, example: '2017-04-13T15:51:04Z'}
+        Parameters:
+          nullable: true
+          anyOf:
+          - {$ref: '#/components/schemas/AnalyticsService.ResultsParameters'}
+      title: ResultsType
+  parameters:
+    top:
+      name: $top
+      in: query
+      description: Show only the first n items, see [Paging - Top](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptiontop)
+      schema: {type: integer, minimum: 0}
+      example: 50
+    skip:
+      name: $skip
+      in: query
+      description: Skip the first n items, see [Paging - Skip](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionskip)
+      schema: {type: integer, minimum: 0}
+    count:
+      name: $count
+      in: query
+      description: Include count of items, see [Count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount)
+      schema: {type: boolean}
+    search:
+      name: $search
+      in: query
+      description: Search items by search phrases, see [Searching](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionsearch)
+      schema: {type: string}
+  responses:
+    error:
+      description: Error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}

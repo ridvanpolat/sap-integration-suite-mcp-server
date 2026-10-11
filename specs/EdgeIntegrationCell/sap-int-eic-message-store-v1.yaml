@@ -1,0 +1,1251 @@
+swagger: '2.0'
+info:
+  title: Message Stores
+  version: 1.0.0
+  description: "Message store enables you get data for processed messages. You can access the stored message and analyze it at a later point in time. An integration flow stores messages in a message store through the Persist step for 90 days.  \nAdditionally, you can get information on the JMS resources available on your Edge Integration Cell runtime as well as on those actually used by your integration flows.  \nThis API is implemented based on OData version 2 specification."
+externalDocs: {description: 'SAP Integration Suite documentation: OData API - Message Store', url: 'https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/1aab5e9482f545539a7caae3e9887e4e.html'}
+x-sap-api-type: ODATA
+x-sap-shortText: Access message store entries, JMS resources and data store entries.
+schemes: [https]
+x-sap-hub-capabilities: {try-out: false}
+basePath: /local/api/v1
+x-servers:
+- url: https://{API Virtual Host}/local/api/v1
+  description: Local OData API Access for Edge Integration Cell - see (https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html)
+  templates:
+    API Virtual Host: {description: The Virtual Host that you have defined for your Edge Integration Cell in the Edge Lifecycle Management.}
+securityDefinitions:
+  BasicAuthentication: {type: basic, description: 'You can check the following documentation for the supported authentication methods: https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html'}
+security:
+- BasicAuthentication: []
+consumes: [application/json]
+produces: [application/json]
+tags:
+- {name: Entries}
+- {name: Entry Attachments}
+- {name: Entry Attachment Properties}
+- {name: Entry Properties}
+- {name: JMS Resources}
+- {name: Data Stores}
+- {name: Variables}
+paths:
+  /MessageProcessingLogs('{MessageGuid}')/MessageStoreEntries:
+    get:
+      description: You can use the following request to get message store entries for the specified message Guid.
+      summary: Get message store entries by message Guid.
+      tags: [Entries]
+      parameters:
+      - {name: MessageGuid, in: path, required: true, description: Guid of the message for which the message processing log is written, type: string}
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            title: Collection of MessageStoreEntry
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntry'}
+          examples:
+            application/json:
+              d:
+                results:
+                - Id: sap-it-res:msg:ae15c0dda:111e8e08-7a44-4dd1-a0b5-0586105591cb
+                  MessageGuid: AFrAl1wLhV2Mkzho92oqdym8bq5v
+                  MessageStoreId: Persist1
+                  TimeStamp: /Date(1522571100123)/
+                  HasAttachments: true
+                  Attachments:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3Ad6d3eee7-0b8e-4279-acd5-d5cbd22994e5'')/Attachments'}
+                  Properties:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3Ad6d3eee7-0b8e-4279-acd5-d5cbd22994e5'')/Properties'}
+                - Id: sap-it-res:msg:ae15c0dda:531e5acb-05cb-4835-a45a-86fbdac0508a
+                  MessageGuid: AFq5745rgi7C6E2IVlCM22lEmgDt
+                  MessageStoreId: Persist2
+                  TimeStamp: /Date(1522134926543)/
+                  HasAttachments: true
+                  Attachments:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3A531e5acb-05cb-4835-a45a-86fbdac0508a'')/Attachments'}
+                  Properties:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3A531e5acb-05cb-4835-a45a-86fbdac0508a'')/Properties'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntries('{MessageStoreEntryId}'):
+    get:
+      description: You can use the following request to get an entry from message store for a specific entry Id.
+      summary: Get message store entry by Id.
+      tags: [Entries]
+      parameters:
+      - {name: MessageStoreEntryId, in: path, required: true, description: Message store entry Id, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: MessageStoreEntry
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntry'}
+          examples:
+            application/json:
+              d:
+                Id: sap-it-res:msg:ae15c0dda:111e8e08-7a44-4dd1-a0b5-0586105591cb
+                MessageGuid: AFrAl1wLhV2Mkzho92oqdym8bq5v
+                MessageStoreId: Persist1
+                TimeStamp: /Date(1522571100123)/
+                HasAttachments: true
+                Attachments:
+                  __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3Ad6d3eee7-0b8e-4279-acd5-d5cbd22994e5'')/Attachments'}
+                Properties:
+                  __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntries(''sap-it-res%3Amsg%3Aae15c0dda%3Ad6d3eee7-0b8e-4279-acd5-d5cbd22994e5'')/Properties'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntries('{MessageStoreEntryId}')/$value:
+    get:
+      description: You can use the following request to get a message payload from message store for a specific entry Id.
+      summary: Get message payload from message store by entry Id.
+      tags: [Entries]
+      parameters:
+      - {name: MessageStoreEntryId, in: path, required: true, description: Message store entry Id, type: string}
+      responses:
+        '200': {description: Retrieved payload of message store entry}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntries('{MessageStoreEntryId}')/Attachments:
+    get:
+      description: You can use the following request to get all attachments from the message store entry with the specified entry Id.
+      summary: Get attachments from message store by entry Id.
+      tags: [Entry Attachments]
+      parameters:
+      - {name: MessageStoreEntryId, in: path, required: true, description: Message store entry Id, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: Collection of MessageStoreEntryAttachment
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachment'}
+          examples:
+            application/json:
+              d:
+                results:
+                - Id: sap-it-res:att:ae15c0dda:2c79e3ef-fc37-43b0-80a7-73a8467cda43
+                  Name: attachment1.html
+                  ContentType: text/html; charset=iso-8859-1
+                  Properties:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntryAttachments(''sap-it-res%3Aatt%3Aae15c0dda%3A2c79e3ef-fc37-43b0-80a7-73a8467cda43'')/Properties'}
+                - Id: sap-it-res:att:ae15c0dda:9c787b0e-0fd6-4088-a0dc-67178eccc4f6
+                  Name: attachment2.html
+                  ContentType: text/html; charset=iso-8859-1
+                  Properties:
+                    __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntryAttachments(''sap-it-res%3Aatt%3Aae15c0dda%3A9c787b0e-0fd6-4088-a0dc-67178eccc4f6'')/Properties'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntryAttachments('{MessageStoreEntryAttachmentId}'):
+    get:
+      description: You can use the following request to get the attachment of a message store entry with the specified attachment Id.
+      summary: Get attachment from message store by attachment Id.
+      tags: [Entry Attachments]
+      parameters:
+      - {name: MessageStoreEntryAttachmentId, in: path, required: true, description: Attachment Id of the message store entry, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: MessageStoreEntryAttachment
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachment'}
+          examples:
+            application/json:
+              d:
+                Id: sap-it-res:att:ae15c0dda:2c79e3ef-fc37-43b0-80a7-73a8467cda43
+                Name: attachment1.html
+                ContentType: text/html; charset=iso-8859-1
+                Properties:
+                  __deferred: {uri: 'https://api.virtual.host/local/api/v1/MessageStoreEntryAttachments(''sap-it-res%3Aatt%3Aae15c0dda%3A2c79e3ef-fc37-43b0-80a7-73a8467cda43'')/Properties'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntryAttachments('{MessageStoreEntryAttachmentId}')/$value:
+    get:
+      description: You can use the following request to get the attachment content of a message store entry with the specified Id.
+      summary: Get attachment content from message store by attachment Id.
+      tags: [Entry Attachments]
+      produces: [application/octet-stream]
+      parameters:
+      - {name: MessageStoreEntryAttachmentId, in: path, required: true, description: Attachment Id of a message store entry, type: string}
+      responses:
+        '200': {description: Retrieved attachment content of message store entry}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntryAttachments('{MessageStoreEntryAttachmentId}')/Properties:
+    get:
+      description: You can use the following request to get attachment properties of a message store entry for the specified attachment Id.
+      summary: Get attachment properties from message store by attachment Id.
+      tags: [Entry Attachment Properties]
+      parameters:
+      - {name: MessageStoreEntryAttachmentId, in: path, required: true, description: Attachment Id of a message store entry, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: Collection of MessageStoreEntryAttachmentProperty
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachmentProperty'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {AttachmentId: 'sap-it-res:att:ae15c0dda:2c79e3ef-fc37-43b0-80a7-73a8467cda43', Name: Content-type, Value: text/html; charset=iso-8859-1}
+                - {AttachmentId: 'sap-it-res:att:ae15c0dda:2c79e3ef-fc37-43b0-80a7-73a8467cda43', Name: Content-Disposition, Value: attachment; filename="attachment1.html"}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntryAttachmentProperties(AttachmentId='{MessageStoreEntryAttachmentId}',Name='{Name}'):
+    get:
+      description: You can use the following request to get attachment properties of a message store entry for the specified attachment Id and property name.
+      summary: Get attachment properties from message store by attachment Id and property name.
+      tags: [Entry Attachment Properties]
+      parameters:
+      - {name: MessageStoreEntryAttachmentId, in: path, required: true, description: Attachment Id of a message store entry, type: string}
+      - {name: Name, in: path, required: true, description: Property name of the attachment for a message store entry, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: MessageStoreEntryAttachmentProperty
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachmentProperty'}
+          examples:
+            application/json:
+              d: {AttachmentId: 'sap-it-res:att:ae15c0dda:2c79e3ef-fc37-43b0-80a7-73a8467cda43', Name: Content-Disposition, Value: attachment; filename="attachment1.html"}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntries('{MessageStoreEntryId}')/Properties:
+    get:
+      description: You can use the following request to get all properties of a message store entry for the specified entry Id.
+      summary: Get all properties of message store by entry Id.
+      tags: [Entry Properties]
+      parameters:
+      - {name: MessageStoreEntryId, in: path, required: true, description: Message store entry Id, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: Collection of MessageStoreEntryProperty
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryProperty'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {MessageId: 'sap-it-res:msg:ae15c0dda:111e8e08-7a44-4dd1-a0b5-0586105591cb', Name: X-receiver, Value: <testrecipient@nonexistent.wdf.sap.corp>}
+                - {MessageId: 'sap-it-res:msg:ae15c0dda:111e8e08-7a44-4dd1-a0b5-0586105591cb', Name: TestHeader, Value: Header Value}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessageStoreEntryProperties(MessageId='{MessageStoreEntryID}',Name='{PropertyName}'):
+    get:
+      description: You can use the following request to get a property of a message store entry for the specified entry Id and property name.
+      summary: Get property from message store by entry Id and property name.
+      tags: [Entry Properties]
+      parameters:
+      - {name: MessageStoreEntryID, in: path, required: true, description: Message store entry Id, type: string}
+      - {name: PropertyName, in: path, required: true, description: Property name for the message store entry, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: MessageStoreEntryProperty
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryProperty'}
+          examples:
+            application/json:
+              d: {MessageId: 'sap-it-res:msg:ae15c0dda:111e8e08-7a44-4dd1-a0b5-0586105591cb', Name: X-receiver, Value: <testrecipient@nonexistent.wdf.sap.corp>}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /JmsBrokers('Broker1'):
+    get:
+      description: "You can use the following request to get information on the JMS resources available on your Edge Integration Cell runtime as well as on those actually used by your integration flows.<br>\n\nAdditional information about response values for some attributes: \n* __IsTransactedSessionsHigh__: \n__0__ - enough transactions available \n__1__ - number of transactions exceeding the allowed limit \n* __IsConsumerHigh__: \n__0__ - enough consumer available \n__1__ - number of consumers exceeding the allowed limits \n* __IsProducersHigh__: \n__0__ - enough producers available \n__1__ - number of producers exceeding the allowed limit"
+      summary: Get available resources of JMS queues.
+      tags: [JMS Resources]
+      parameters:
+      - name: $expand
+        in: query
+        description: Expand related entities.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [QueueStates, InactiveQueues]
+      responses:
+        '200':
+          description: Retrieved entity with expand on queue states
+          schema: {$ref: '#/definitions/com.sap.hci.api.JmsBrokerQueueStates'}
+          examples:
+            application/json:
+              d:
+                Key: Broker1
+                Capacity: '794616135'
+                MaxCapacity: '9751756800'
+                IsTransactedSessionsHigh: 0
+                IsConsumersHigh: 0
+                IsProducersHigh: 0
+                MaxQueueNumber: '30'
+                QueueNumber: '16'
+                CapacityOk: '16'
+                CapacityWarning: '0'
+                CapacityError: '0'
+                QueueStates:
+                  results:
+                  - Name: CC
+                    State: '0'
+                    Broker:
+                      __deferred: {uri: 'https://api.virtual.host/local/api/v1/QueueStates(''CC'')/Broker'}
+                  - Name: TEST2
+                    State: '0'
+                    Broker:
+                      __deferred: {uri: 'https://api.virtual.host/local/api/v1/QueueStates(''TEST2'')/Broker'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessagingQueues:
+    get:
+      tags: [JMS Resources]
+      summary: List queues
+      description: |
+        Returns all queues for the tenant. **`$top`/`$skip`/…** ignored;
+        **`$filter`/`$select`/…** → **400** (see API description).
+      parameters:
+      - {$ref: '#/parameters/QueryFormat'}
+      - {$ref: '#/parameters/count'}
+      responses:
+        '200':
+          description: OK — feed of **`MessagingQueue`** entries (`d.results`).
+          headers:
+            sap-correlation-id: {type: string}
+          schema:
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessagingQueue'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessagingQueues('{queueName}'):
+    get:
+      tags: [JMS Resources]
+      summary: Read one queue
+      description: Returns queue by name.
+      parameters:
+      - {$ref: '#/parameters/QueueNameQuoted'}
+      - {$ref: '#/parameters/QueryFormat'}
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessagingQueue'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      tags: [JMS Resources]
+      summary: Delete queue
+      description: |
+        Deletes the queue when permitted. By default the queue must be **empty**
+        (including sibling **`E.`** / **`C.`** queues). Pass **`forceDelete=true`**
+        to delete and discard remaining messages. **`400 QUEUE_IN_USE`** when
+        deployed flows still reference the queue; **`409 QUEUE_NOT_EMPTY`** when
+        messages remain and **`forceDelete`** is not **`true`**.
+      parameters:
+      - {$ref: '#/parameters/QueueNameQuoted'}
+      - {$ref: '#/parameters/QueryForceDelete'}
+      responses:
+        '200':
+          description: Success — queue deleted.
+          schema: {$ref: '#/definitions/com.sap.hci.api.MutationSuccess'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '409': {$ref: '#/responses/409'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessagingQueues('{queueName}')/MessagingMessages:
+    get:
+      tags: [JMS Resources]
+      summary: List messages in a queue (capped feed)
+      description: |
+        Named filters only — **`$top`/`$skip`/…** ignored (not applied). At most
+        **`pageSize`** rows (default from **`JMS_ODATA_PUBLIC_PAGE_SIZE`**). No
+        **`Warning`** header when the matching set exceeds the cap.
+      parameters:
+      - {$ref: '#/parameters/QueueNameQuoted'}
+      - {$ref: '#/parameters/QueryFormat'}
+      - {$ref: '#/parameters/FilterJmsMessageId'}
+      - {$ref: '#/parameters/FilterMessageIdLegacyAlias'}
+      - {$ref: '#/parameters/FilterCorrelationId'}
+      - {$ref: '#/parameters/FilterSender'}
+      - {$ref: '#/parameters/FilterReceiver'}
+      - {$ref: '#/parameters/FilterMplId'}
+      - {$ref: '#/parameters/FilterMessageType'}
+      - {$ref: '#/parameters/FilterApplicationId'}
+      - {$ref: '#/parameters/FilterCreatedAfter'}
+      - {$ref: '#/parameters/FilterCreatedBefore'}
+      - {$ref: '#/parameters/FilterPageSize'}
+      responses:
+        '200':
+          description: Success — `d.results` (**≤ page-size rows**; silent cap when more match).
+          headers:
+            sap-correlation-id: {type: string}
+          schema:
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.MessagingMessage'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessagingMessages(jmsMessageId='{jmsMessageId}',queueName='{queueName}'):
+    get:
+      tags: [JMS Resources]
+      summary: Read one message (canonical key path example)
+      description: |
+        Equivalent navigation URL **`…/MessagingQueues('{queueName}')/MessagingMessages(jmsMessageId='…',queueName='…')`** is also supported.
+      parameters:
+      - name: jmsMessageId
+        in: path
+        required: true
+        type: string
+        description: |
+          Message id segment (**hex form `x-hex-…`** when needed). Resolver also accepts key literal **`jmsMessageId`** on the wire — follow **`$metadata`** for alternate spellings.
+      - {name: queueName, in: path, required: true, type: string, description: JMS queue name., x-example: QueueName1}
+      - {$ref: '#/parameters/QueryFormat'}
+      responses:
+        '200':
+          description: Success
+          headers:
+            sap-correlation-id: {type: string}
+          schema:
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.hci.api.MessagingMessage'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      tags: [JMS Resources]
+      summary: Delete one message
+      description: Delete a message from the specified JMS queue
+      parameters:
+      - name: jmsMessageId
+        in: path
+        required: true
+        type: string
+        description: |
+          Message id segment (**hex form `x-hex-…`** when needed). Resolver also accepts key literal **`jmsMessageId`** on the wire — follow **`$metadata`** for alternate spellings.
+      - {name: queueName, in: path, required: true, type: string, description: JMS queue name., x-example: QueueName1}
+      responses:
+        '200':
+          description: Success — message deleted.
+          schema: {$ref: '#/definitions/com.sap.hci.api.MutationSuccess'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MessagingMessages(jmsMessageId='{jmsMessageId}',queueName='{queueName}')/$value:
+    get:
+      tags: [JMS Resources]
+      summary: Download message payload bytes
+      description: Download the payload of a JMS message with the specified ID and queue name.
+      produces: [application/octet-stream]
+      parameters:
+      - name: jmsMessageId
+        in: path
+        required: true
+        type: string
+        description: |
+          Message id segment (**hex form `x-hex-…`** when needed). Resolver also accepts key literal **`jmsMessageId`** on the wire — follow **`$metadata`** for alternate spellings.
+      - {name: queueName, in: path, required: true, type: string, description: JMS queue name., x-example: QueueName1}
+      responses:
+        '200':
+          description: Success — raw bytes (`Content-Type` from stored message metadata when available).
+          schema: {type: string, format: binary}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /MoveMessagingMessages:
+    post:
+      tags: [JMS Resources]
+      summary: Move messages between queues
+      description: |
+        JSON body — see **`MoveMessagingMessagesRequest`**. Target queue must not be a system queue (**`E.`** / **`C.`** prefix).
+      operationId: moveMessagingMessages
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema: {$ref: '#/definitions/com.sap.hci.api.MoveMessagingMessagesRequest'}
+        description: Configuration for move messages request.
+      responses:
+        '200':
+          description: Success — move completed synchronously.
+          schema: {$ref: '#/definitions/com.sap.hci.api.MutationSuccess'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /RetryMessagingMessages:
+    post:
+      tags: [JMS Resources]
+      summary: Retry messages on error queue
+      description: |
+        JSON body — **`RetryMessagingMessagesRequest`**. Retry eligibility follows broker rules (**failed** rows).
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema: {$ref: '#/definitions/com.sap.hci.api.RetryMessagingMessagesRequest'}
+        description: Configuration for retry messages request.
+      responses:
+        '200':
+          description: Success — retry completed synchronously.
+          schema: {$ref: '#/definitions/com.sap.hci.api.MutationSuccess'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStores:
+    get:
+      description: You can use the following request to get the Data Stores available on your Edge Integration Cell runtime.
+      summary: Get available Data Stores.
+      tags: [Data Stores]
+      parameters:
+      - name: overdueonly
+        in: query
+        description: If this parameter is ```true``` only Data Stores with overdue messages are shown. If it is ```false``` or not available all Data Stores are shown.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: ['true', 'false']
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            title: Collection of Data Stores
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.DataStores'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {DataStoreName: Name, IntegrationFlow: Test, Type: '', Visibility: Integration Flow, NumberOfMessages: '3', NumberOfOverdueMessages: '3'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStores(DataStoreName='{DataStoreName}',IntegrationFlow='{IntegrationFlowId}',Type='{Type}'):
+    get:
+      description: You can use the following request to get a Data Store by its name.
+      summary: Get specific Data Store by its name.
+      tags: [Data Stores]
+      parameters:
+      - {name: DataStoreName, in: path, required: true, description: Name of the Data Store, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      - name: Type
+        in: path
+        required: true
+        description: Is used for Data Stores that are created by Adapters (e.g. XI or AS4) or Flowsteps (e.g. Aggregator). Is empty if the visibility is Global or IntegrationFlow
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema: {$ref: '#/definitions/com.sap.hci.api.DataStores'}
+          examples:
+            application/json:
+              d: {DataStoreName: DataStore1, IntegrationFlow: IntegratoinFlow1, Type: XI, Visibility: Inegration Flow, NumberOfMessages: '19', NumberOfOverdueMessages: '19'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStoreEntries:
+    get:
+      description: You can use the following request to get all Data Store entries available on your Edge Integration Cell runtime.
+      summary: Get all Data Store entries.
+      tags: [Data Stores]
+      parameters:
+      - name: overdueonly
+        in: query
+        description: If this parameter is ```true``` only Data Store entries with overdue messages are shown. If it is ```false``` or not available all Data Store entries are shown.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: ['true', 'false']
+      - name: messageid
+        in: query
+        description: Shows all Data Store Entries with the mpl id
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            title: Collection of Data Store entries
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.DataStoreEntries'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {Id: g59c94d8-553b-4471-8f12-4f135f61d8c1, DataStoreName: Name, IntegrationFlow: Test, Type: '', Status: Overdue, MessageId: BGAhYYq9SRemeZqvs3q2SSi-sRdy, DueAt: '2021-02-15T16:06:34.08', CreatedAt: '2021-02-15T16:06:34.08', RetainUntil: '2021-05-15T16:06:34.08'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStores(DataStoreName='{DataStoreName}',IntegrationFlow='{IntegrationFlowId}',Type='{Type}')/Entries:
+    get:
+      description: You can use the following request to get all Data Store entries for a specific Data Store available on your Edge Integration Cell runtime.
+      summary: Get all Data Store entries for a specific Data Store.
+      tags: [Data Stores]
+      parameters:
+      - {name: DataStoreName, in: path, required: true, description: Name of the Data Store, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      - name: Type
+        in: path
+        required: true
+        description: Is used for Data Stores that are created by Adapters (e.g. XI or AS4) or Flowsteps (e.g. Aggregator). Is empty if the visibility is Global or IntegrationFlow
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      - name: overdueonly
+        in: query
+        description: If this parameter is ```true``` only Data Store entries with overdue messages are shown. If it is ```false``` or not available all Data Store entries are shown.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: ['true', 'false']
+      - name: messageid
+        in: query
+        description: Shows all Data Store Entries with the mpl id
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            title: Collection of Data Store entries
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.DataStoreEntries'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {Id: g59c94d8-553b-4471-8f12-4f135f61d8c1, DataStoreName: Name, IntegrationFlow: Test, Type: '', Status: Overdue, MessageId: BGAhYYq9SRemeZqvs3q2SSi-sRdy, DueAt: '2021-02-15T16:06:34.08', CreatedAt: '2021-02-15T16:06:34.08', RetainUntil: '2021-05-15T16:06:34.08'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStoreEntries(Id='{Id}',DataStoreName='{DataStoreName}',IntegrationFlow='{IntegrationFlowId}',Type='{Type}'):
+    get:
+      description: You can use the following request to get a Data Store entry.
+      summary: Get specific Data Store entry by its Id.
+      tags: [Data Stores]
+      parameters:
+      - {name: Id, in: path, required: true, description: Id of the Data Store entry, type: string}
+      - {name: DataStoreName, in: path, required: true, description: Name of the Data Store, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      - name: Type
+        in: path
+        required: true
+        description: Is used for Data Stores that are created by Adapters (e.g. XI or AS4) or Flowsteps (e.g. Aggregator). Is empty if the visibility is Global or IntegrationFlow
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema: {$ref: '#/definitions/com.sap.hci.api.DataStores'}
+          examples:
+            application/json:
+              d: {Id: g59c94d8-553b-4471-8f12-4f135f61d8c1, DataStoreName: Name, IntegrationFlow: Test, Type: '', Status: Overdue, MessageId: BGAhYYq9SRemeZqvs3q2SSi-sRdy, DueAt: '2021-02-15T16:06:34.08', CreatedAt: '2021-02-15T16:06:34.08', RetainUntil: '2021-05-15T16:06:34.08'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /DataStoreEntries(Id='{Id}',DataStoreName='{DataStoreName}',IntegrationFlow='{IntegrationFlowId}',Type='{Type}')/$value:
+    get:
+      description: You can use the following request to download Data Store entry content.
+      summary: Download content of a specific Data Store entry by its Id.
+      tags: [Data Stores]
+      parameters:
+      - {name: Id, in: path, required: true, description: Id of the Data Store entry, type: string}
+      - {name: DataStoreName, in: path, required: true, description: Name of the Data Store, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      - name: Type
+        in: path
+        required: true
+        description: Is used for Data Stores that are created by Adapters (e.g. XI or AS4) or Flowsteps (e.g. Aggregator). Is empty if the visibility is Global or IntegrationFlow
+        type: array
+        uniqueItems: true
+        items: {type: string}
+      responses:
+        '200': {description: Retrieved content}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /Variables:
+    get:
+      description: You can use the following request to get all Variables entries available on your Edge Integration Cell runtime.
+      summary: Get all Variables entries.
+      tags: [Variables]
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            title: Collection of Variables entries
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.hci.api.Variables'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {VariableName: g59c94d8-553b-4471-8f12-4f135f61d8c1, IntegrationFlow: Test, Visibility: Integration Flow, UpdatedAt: '2021-02-15T16:06:34.08', RetainUntil: '2021-05-15T16:06:34.08'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /Variables(VariableName='{VariableName}',IntegrationFlow='{IntegrationFlowId}'):
+    get:
+      description: You can use the following request to get a Variable by its name.
+      summary: Get specific Variable by its name.
+      tags: [Variables]
+      parameters:
+      - {name: VariableName, in: path, required: true, description: Name of the Variable, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema: {$ref: '#/definitions/com.sap.hci.api.Variables'}
+          examples:
+            application/json:
+              d: {VariableName: VarName, IntegrationFlow: IntegratoinFlow1, Visibility: Global, UpdatedAt: '2021-02-15T16:06:34.08', RetainUntil: '2021-05-15T16:06:34.08'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /Variables(VariableName='{VariableName}',IntegrationFlow='{IntegrationFlowId}')/$value:
+    get:
+      description: You can use the following request to get the content of a Variable by its name.
+      summary: Download Variable's content by its name.
+      tags: [Variables]
+      parameters:
+      - {name: VariableName, in: path, required: true, description: Name of the Variable, type: string}
+      - {name: IntegrationFlowId, in: path, required: true, description: The ID of the IntegrationFlow, type: string}
+      responses:
+        '200': {description: Retrieved content}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        default: {$ref: '#/responses/error'}
+  /:
+    get:
+      tags: [CSRF Token Handling]
+      produces: [application/json]
+      description: You can use the following request to get the CSRF token which is required for write access via POST, PUT and DELETE operations. Copy the received X-CSRF-Token from the response header.
+      summary: Get CSRF token.
+      parameters:
+      - {description: To retrieve a new CSRF token the value of the header must be set to ```Fetch```., in: header, name: X-CSRF-Token, required: true, type: string, default: Fetch}
+      responses:
+        '200':
+          description: The header provides the CSRF token.
+          headers:
+            X-CSRF-Token: {description: CSRF token that can be used for all modifying requests., type: string}
+        default: {$ref: '#/responses/error'}
+definitions:
+  com.sap.hci.api.MessageStoreEntry:
+    type: object
+    properties:
+      Id:
+        type: [string, 'null']
+      MessageGuid:
+        type: [string, 'null']
+      MessageStoreId:
+        type: [string, 'null']
+      Timestamp:
+        type: [string, 'null']
+        format: date-time
+        example: '2020-04-13T15:51:04Z'
+      HasAttachments:
+        type: [boolean]
+      Attachments:
+        title: Attachments of MessageStoreEntries
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachment'}
+      Properties:
+        title: Properties of MessageStoreEntries
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryProperty'}
+    title: MessageStoreEntry
+  com.sap.hci.api.MessageStoreEntryProperty:
+    type: object
+    properties:
+      MessageId:
+        type: [string, 'null']
+      Name:
+        type: [string, 'null']
+      Value:
+        type: [string, 'null']
+    title: MessageStoreEntryProperty
+  com.sap.hci.api.MessageStoreEntryAttachmentProperty:
+    type: object
+    properties:
+      AttachmentId:
+        type: [string, 'null']
+      Name:
+        type: [string, 'null']
+      Value:
+        type: [string, 'null']
+    title: MessageStoreEntryAttachmentProperty
+  com.sap.hci.api.MessageStoreEntryAttachment:
+    type: object
+    properties:
+      Id:
+        type: [string, 'null']
+      Name:
+        type: [string, 'null']
+      ContentType:
+        type: [string, 'null']
+      Properties:
+        type: array
+        items: {$ref: '#/definitions/com.sap.hci.api.MessageStoreEntryAttachmentProperty'}
+    title: MessageStoreEntryAttachment
+  com.sap.hci.api.JmsBroker:
+    type: object
+    properties:
+      Key: {type: string}
+      Capacity:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      MaxCapacity:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      IsTransactedSessionsHigh:
+        type: [integer, 'null']
+        format: int32
+      IsConsumersHigh:
+        type: [integer, 'null']
+        format: int32
+      IsProducersHigh:
+        type: [integer, 'null']
+        format: int32
+      MaxQueueNumber:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      QueueNumber:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityOk:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityWarning:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityError:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+    title: JmsBroker
+  com.sap.hci.api.JmsBrokerQueueStates:
+    type: object
+    properties:
+      Key: {type: string}
+      Capacity:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      MaxCapacity:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      IsTransactedSessionsHigh:
+        type: [integer, 'null']
+        format: int32
+      IsConsumersHigh:
+        type: [integer, 'null']
+        format: int32
+      IsProducersHigh:
+        type: [integer, 'null']
+        format: int32
+      MaxQueueNumber:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      QueueNumber:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityOk:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityWarning:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      CapacityError:
+        type: [integer, string, 'null']
+        format: int64
+        example: '42'
+      QueueStates:
+        type: object
+        properties:
+          Name: {type: string}
+          State:
+            type: [integer, string, 'null']
+            format: int64
+            example: '0'
+    title: JmsBrokerQueueStates
+  odata.error:
+    type: object
+    required: [error]
+    properties:
+      error: {$ref: '#/definitions/odata.error.main'}
+  odata.error.main:
+    type: object
+    required: [code, message]
+    properties:
+      code: {type: string}
+      message:
+        type: object
+        required: [lang, value]
+        properties:
+          lang: {type: string}
+          value: {type: string}
+  com.sap.hci.api.DataStores:
+    type: object
+    properties:
+      DataStoreName: {type: string}
+      IntegrationFlow: {type: string}
+      Type: {type: string}
+      Visibility: {type: string}
+      NumberOfMessages: {type: integer, format: int64, example: '42'}
+      NumberOfOverdueMessages: {type: integer, format: int64, example: '42'}
+    title: DataStores
+  com.sap.hci.api.DataStoreEntries:
+    type: object
+    properties:
+      Id: {type: string}
+      DataStoreName: {type: string}
+      IntegrationFlow: {type: string}
+      Type: {type: string}
+      Status: {type: string}
+      Messageid: {type: string}
+      DueAt: {type: string, format: date-time, example: '2021-04-13T15:51:04'}
+      CreatedAt: {type: string, format: date-time, example: '20121-04-13T15:51:04'}
+      RetainUntil: {type: string, format: date-time, example: '2021-04-13T15:51:04'}
+    title: DataStoreEntries
+  com.sap.hci.api.Variables:
+    type: object
+    properties:
+      VariableName: {type: string}
+      IntegrationFlow: {type: string}
+      Visibility: {type: string}
+      UpdatedAt: {type: string, format: date-time, example: '20121-04-13T15:51:04'}
+      RetainUntil: {type: string, format: date-time, example: '2021-04-13T15:51:04'}
+    title: Variables
+  com.sap.hci.api.MessagingQueue:
+    type: object
+    description: Public queue entity. JSON property names are camelCase. **`numberOfMessages`** is the combined customer-visible depth (processing queue plus failed sibling), aligned with the legacy Web UI count.
+    properties:
+      queueName: {type: string}
+      numberOfMessages: {description: Customer-visible queue depth., type: string}
+      active: {type: boolean}
+      exclusive: {type: boolean}
+    title: MessagingQueue
+  com.sap.hci.api.MessagingMessage:
+    type: object
+    description: Public message entity. JSON property names are camelCase. **`jmsMessageId`** uses the hex encoding form when required for URL safety.
+    properties:
+      jmsMessageId: {type: string}
+      queueName: {type: string}
+      failed: {type: boolean}
+      mplId: {type: string}
+      createdAt: {type: string, description: Epoch milliseconds (string representation).}
+      retryCount: {type: string, description: Retry counter (string representation).}
+      nextRetry: {type: string, description: Epoch milliseconds of next retry (string representation).}
+      overdueAt: {type: string, description: Epoch milliseconds when message becomes overdue (string representation).}
+      expirationDate: {type: string, description: Epoch milliseconds of expiration (string representation).}
+      sender: {type: string}
+      receiver: {type: string}
+      messageType: {type: string}
+      applicationId: {type: string}
+      correlationId: {type: string}
+    title: MessagingMessage
+  com.sap.hci.api.MutationSuccess:
+    type: object
+    required: [operation, processedCount]
+    description: Minimal success body for synchronous delete, move, and retry operations.
+    properties:
+      operation:
+        type: string
+        enum: [DELETE, MOVE, RETRY]
+      processedCount:
+        type: integer
+        minimum: 0
+        description: |
+          Reported count for the operation. Whole-queue move/retry use the
+          pre-call customer-visible queue depth; filter/id-list modes report
+          the dispatched count for that call. Delete always returns **1**.
+    title: MutationSuccess
+  com.sap.hci.api.MoveMessagingMessagesRequest:
+    type: object
+    required: [sourceQueue, targetQueue]
+    properties:
+      sourceQueue: {type: string}
+      targetQueue: {type: string}
+      jmsMessageId: {type: string}
+      JmsMessageId: {type: string, description: OData-style alias merged into jmsMessageId.}
+      messageId: {type: string, description: Legacy alias merged into jmsMessageId.}
+      jmsMessageIds:
+        type: array
+        items: {type: string}
+        description: Array of ids — mutually exclusive with filters when using ID mode. Also accepts comma-separated string (use jmsMessageIds as array or send as string via messageIds).
+      messageIds: {type: string, description: Alias of **`jmsMessageIds`** — must not disagree if both present.}
+      correlationId: {type: string}
+      sender: {type: string}
+      receiver: {type: string}
+      mplId: {type: string}
+      messageType: {type: string}
+      applicationId: {type: string}
+      createdAfter: {type: string, description: Epoch ms UTC}
+      createdBefore: {type: string, description: Epoch ms UTC}
+    title: MoveMessagingMessagesRequest
+  com.sap.hci.api.RetryMessagingMessagesRequest:
+    type: object
+    required: [queueName]
+    properties:
+      queueName: {type: string}
+      jmsMessageId: {type: string}
+      JmsMessageId: {type: string}
+      messageId: {type: string}
+      jmsMessageIds:
+        type: array
+        items: {type: string}
+        description: Array of ids or comma-separated string (use messageIds for string form).
+      messageIds: {type: string}
+      correlationId: {type: string}
+      sender: {type: string}
+      receiver: {type: string}
+      mplId: {type: string}
+      messageType: {type: string}
+      applicationId: {type: string}
+      createdAfter: {type: string}
+      createdBefore: {type: string}
+    title: RetryMessagingMessagesRequest
+parameters:
+  top: {name: $top, in: query, description: Show only the first n items., type: integer, minimum: 0}
+  skip: {name: $skip, in: query, description: Skip the first n items., type: integer, minimum: 0}
+  count: {name: $count, in: query, description: Include count of items., type: boolean}
+  filter: {name: $filter, in: query, description: Filter items by property values., type: string}
+  QueueNameQuoted: {name: queueName, in: path, required: true, type: string, description: Queue name inside OData single-quoted literal., x-example: QueueName1}
+  QueryFormat: {name: $format, in: query, required: false, type: string, description: OData format selection when supported (e.g. `json`).}
+  FilterJmsMessageId: {name: jmsMessageId, in: query, type: string, description: Filter by JMS Message ID (preferred query name).}
+  FilterMessageIdLegacyAlias: {name: messageId, in: query, type: string, description: Legacy alias — normalized server-side to **`jmsMessageId`**.}
+  FilterCorrelationId: {name: correlationId, in: query, type: string, description: Filter by correlation ID.}
+  FilterSender: {name: sender, in: query, type: string, description: Filter by sender.}
+  FilterReceiver: {name: receiver, in: query, type: string, description: Filter by receiver.}
+  FilterMplId: {name: mplId, in: query, type: string, description: Filter by message processing log ID.}
+  FilterMessageType: {name: messageType, in: query, type: string, description: Filter by message type.}
+  FilterApplicationId: {name: applicationId, in: query, type: string, description: Filter by application ID.}
+  FilterCreatedAfter: {name: createdAfter, in: query, type: string, description: Epoch milliseconds UTC (string or number in practice).}
+  FilterCreatedBefore: {name: createdBefore, in: query, type: string, description: Epoch milliseconds UTC (string or number in practice).}
+  FilterPageSize:
+    name: pageSize
+    in: query
+    type: integer
+    minimum: 100
+    maximum: 10000
+    description: |
+      Optional row cap for this message feed request (**100** … **10 000**).
+      When omitted, the server default from **`JMS_ODATA_PUBLIC_PAGE_SIZE`** applies.
+  QueryForceDelete:
+    name: forceDelete
+    in: query
+    required: false
+    type: string
+    enum: ['true', 'false']
+    description: |
+      When **`true`**, delete the queue and discard remaining messages.
+      Default **`false`** enforces the empty-queue guard (**`409 QUEUE_NOT_EMPTY`** when messages remain).
+responses:
+  '400': {description: Bad Request. Wrong format or structure of the provided request body or parameters.}
+  '401': {description: Unauthorized. Authorization information is missing or invalid.}
+  '403': {description: Forbidden. The required permissions to access the resource are missing.}
+  '404': {description: Not found. The requested resource could not be found.}
+  '409': {description: Conflict. Indicates that the request could not be processed because of conflict in the current state of the resource.}
+  '429': {description: Too many requests. Server’s rate limit exceeded.}
+  '500': {description: Internal server error. The requested operation led to an error during execution.}
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}
+    examples:
+      application/json:
+        error:
+          code: <error code>
+          message: {lang: en, value: <error text>}

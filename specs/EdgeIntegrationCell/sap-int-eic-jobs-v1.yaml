@@ -1,0 +1,692 @@
+swagger: '2.0'
+info:
+  title: Jobs
+  version: 1.0.0
+  description: "The Jobs API enables you to manage scheduled background jobs running on your Edge Integration Cell, such as monitoring data cleanup, data aggregation, and diagnostic data cleanup. It supports reading job execution status, managing job schedules, and full CRUD operations for your own jobs.  \n\nThis API is implemented based on OData version 4 specification."
+externalDocs: {description: 'SAP Integration Suite documentation: OData API - Job Management', url: 'https://help.sap.com/docs/SAP_INTEGRATION_SUITE/caeaa5e76f8c486ebea167938fa1f40b/4146fa5f2d094ea9820e82c53790fe86.html'}
+x-sap-api-type: ODATAV4
+x-sap-shortText: Manage scheduled background jobs on Edge Integration Cell.
+basePath: /local/api/eic/v1
+schemes: [https]
+x-sap-hub-capabilities: {try-out: false}
+x-servers:
+- url: https://{API Virtual Host}/local/api/eic/v1
+  description: Local OData API Access for Edge Integration Cell - see (https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html)
+  templates:
+    API Virtual Host: {description: The Virtual Host that you have defined for your Edge Integration Cell in the Edge Lifecycle Management.}
+securityDefinitions:
+  BasicAuthentication: {type: basic, description: 'You can check the following documentation for the supported authentication methods: https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html'}
+security:
+- BasicAuthentication: []
+consumes: [application/json]
+produces: [application/json, text/plain]
+tags:
+- {name: Jobs}
+- {name: Job Schedules}
+- {name: CSRF Token Handling}
+paths:
+  /Jobs:
+    get:
+      tags: [Jobs]
+      summary: Get all jobs
+      description: |-
+        You can use the following request to get all scheduled background jobs with their current state and last execution information. Several filter operations and other options (for example expand, orderby) are supported. Examples:
+        - ```GET /Jobs```
+        - ```GET /Jobs?$count=true```
+        - ```GET /Jobs?$filter=LastExecutionState eq 'FAILED'```
+        - ```GET /Jobs?$expand=Schedule```
+        - ```GET /Jobs?$orderby=NextExecutionTime asc```
+      operationId: listJobs
+      parameters:
+      - {name: $filter, in: query, type: string, description: 'Filter jobs by property values. Example: ```$filter=LastExecutionState eq ''FAILED''```'}
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Schedule]
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Id, Name, ActionId, LastExecutionState, LastExecutionTime, NextExecutionTime, LastChangedBy, LastChangedOn, IsSystemJob, Parameters]
+      - {name: $orderby, in: query, type: string, description: 'Order items by property values. Example: ```$orderby=NextExecutionTime asc```'}
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/count'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved jobs.
+          schema:
+            title: Collection of Jobs
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.Job'}
+          examples:
+            application/json:
+              d:
+                results:
+                - Id: CleanupTraceEntries
+                  Name: CleanupTraceEntries
+                  ActionId: CleanupTraceEntries
+                  LastExecutionState: COMPLETED
+                  LastExecutionTime: '2026-03-01T02:00:00Z'
+                  NextExecutionTime: '2026-03-02T02:00:00Z'
+                  LastChangedBy: SYSTEM_USER
+                  LastChangedOn: '2026-01-15T10:30:00Z'
+                  IsSystemJob: true
+                  Parameters:
+                  - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 30}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    post:
+      tags: [Jobs]
+      summary: Create a new job
+      description: |-
+        You can use the following request to create a new background job with a given schedule and parameters. Example:
+        - ```POST /Jobs```
+      operationId: createJob
+      parameters:
+      - name: body
+        in: body
+        required: true
+        description: Job to create. `Name`, `ActionId` and `Schedule` are required. `Parameters` is optional; if omitted, default values are used.
+        schema: {$ref: '#/definitions/com.sap.eic.api.JobCreateRequest'}
+      produces: [application/json]
+      responses:
+        '201':
+          description: Job created successfully.
+          schema:
+            title: Job
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Job'}
+          examples:
+            application/json:
+              d:
+                Id: MyCustomCleanup
+                Name: MyCustomCleanup
+                ActionId: CleanupTraceEntries
+                LastExecutionState: NOT_YET_EXECUTED
+                LastExecutionTime: null
+                NextExecutionTime: '2026-04-10T03:00:00Z'
+                LastChangedBy: admin@sap.com
+                LastChangedOn: '2026-04-09T14:00:00Z'
+                IsSystemJob: false
+                Parameters:
+                - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 60}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '409': {$ref: '#/responses/409'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Jobs/$count:
+    get:
+      tags: [Jobs]
+      summary: Get number of jobs. Supports filter option.
+      description: |-
+        You can use the following request to retrieve the number of jobs. The filter option is taken into account if applied. Examples:
+        - ```GET /Jobs/$count```
+        - ```GET /Jobs/$count?$filter=LastExecutionState eq 'FAILED'```
+        - ```GET /Jobs/$count?$filter=IsSystemJob eq true```
+      operationId: countJobs
+      parameters:
+      - {name: $filter, in: query, type: string, description: Filter jobs by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved jobs.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Jobs/{jobId}:
+    get:
+      tags: [Jobs]
+      summary: Get a single job by its identifier.
+      description: |-
+        You can use the following request to get a specific job by its id. The id is the URL-encoded job name. Examples:
+        - ```GET /Jobs/CleanupTraceEntries```
+        - ```GET /Jobs/Crun%20Frun%20Data%20Transfer```
+        - ```GET /Jobs/MyCustomCleanup?$expand=Schedule```
+      operationId: getJob
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Id, Name, ActionId, LastExecutionState, LastExecutionTime, NextExecutionTime, LastChangedBy, LastChangedOn, IsSystemJob, Parameters]
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Schedule]
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved job.
+          schema:
+            title: Job
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Job'}
+          examples:
+            application/json:
+              d:
+                Id: CleanupTraceEntries
+                Name: CleanupTraceEntries
+                ActionId: CleanupTraceEntries
+                LastExecutionState: COMPLETED
+                LastExecutionTime: '2026-03-01T02:00:00Z'
+                NextExecutionTime: '2026-03-02T02:00:00Z'
+                LastChangedBy: SYSTEM_USER
+                LastChangedOn: '2026-01-15T10:30:00Z'
+                IsSystemJob: true
+                Parameters:
+                - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 30}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    patch:
+      tags: [Jobs]
+      summary: Update fields of an existing job.
+      description: |-
+        You can use the following request for minor updates to the schedule or parameters of an existing job. Only the fields provided in the request body are updated while all others are left unchanged (merge semantics). `Name` and `ActionId` cannot be changed. Updating schedule fields requires providing the schedule's `@odata.type`. Attempting to change fields `@odata.type`, `DateScheduleType` or `TimeScheduleType` via PATCH requests is rejected with HTTP 400 (this can be achieved by replacing the complete schedule via PUT). Example:
+        - ```PATCH /Jobs/MyCustomCleanup```
+      operationId: updateJob
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      - name: body
+        in: body
+        required: true
+        description: Fields to update. Only `Parameters` and `Schedule` can be changed and at least one of them should be provided.
+        schema: {$ref: '#/definitions/com.sap.eic.api.JobPatchRequest'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Job updated successfully.
+          schema:
+            title: Job
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Job'}
+          examples:
+            application/json:
+              d:
+                Id: MyCustomCleanup
+                Name: MyCustomCleanup
+                ActionId: CleanupTraceEntries
+                LastExecutionState: COMPLETED
+                LastExecutionTime: '2026-04-10T03:00:00Z'
+                NextExecutionTime: '2026-04-11T03:00:00Z'
+                LastChangedBy: admin@sap.com
+                LastChangedOn: '2026-04-10T10:15:00Z'
+                IsSystemJob: false
+                Parameters:
+                - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 120}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    put:
+      tags: [Jobs]
+      summary: Reconfigure an existing job.
+      description: |-
+        You can use the following request to fully replace the schedule and parameters of an existing job. This operation does not retain any stored values for parameters and schedule configuration (full replacement semantics). `Name` and `ActionId` cannot be changed. Providing `Parameters` is optional. All parameters omitted in the request are initialized with their default values if available. Omitting parameters without any default value results in HTTP 400. The `Schedule` configuration is mandatory and replaces the stored one, so a complete schedule definition must be provided with all required fields including `@odata.type` (which may differ from the former one). Omitting required schedule fields results in HTTP 400. Example:
+        - ```PUT /Jobs/MyCustomCleanup```
+      operationId: updateJob
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      - name: body
+        in: body
+        required: true
+        description: Complete `Schedule` object to replace the current schedule including `@odata.type` to identify the concrete schedule subtype. `Parameters` is optional and default values apply for all parameters omitted in the request (if available).
+        schema: {$ref: '#/definitions/com.sap.eic.api.JobUpdateRequest'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Job updated successfully.
+          schema:
+            title: Job
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Job'}
+          examples:
+            application/json:
+              d:
+                Id: MyCustomCleanup
+                Name: MyCustomCleanup
+                ActionId: CleanupTraceEntries
+                LastExecutionState: COMPLETED
+                LastExecutionTime: '2026-04-10T03:00:00Z'
+                NextExecutionTime: '2026-04-11T03:00:00Z'
+                LastChangedBy: admin@sap.com
+                LastChangedOn: '2026-04-10T10:15:00Z'
+                IsSystemJob: false
+                Parameters:
+                - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 120}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      tags: [Jobs]
+      summary: Delete an existing job.
+      description: |-
+        You can use the following request to delete a job. System jobs (`IsSystemJob = true`) cannot be deleted. If the job is currently executing, deletion is rejected with HTTP 409. Example:
+        - ```DELETE /Jobs/MyCustomCleanup```
+      operationId: deleteJob
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      responses:
+        '204': {description: Job deleted successfully.}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '409': {$ref: '#/responses/409'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Jobs/{jobId}/Schedule:
+    get:
+      tags: [Job Schedules]
+      summary: Get the schedule configuration for a job.
+      description: |-
+        You can use the following request to retrieve the schedule configuration of a specific job. The response type depends on the schedule subtype (e.g. `JobScheduleDailyOnTime`, `JobScheduleWeeklyRepeatInInterval`). Examples:
+        - ```GET /Jobs/CleanupTraceEntries/Schedule```
+        - ```GET /Jobs/MyCustomCleanup/Schedule```
+      operationId: getJobSchedule
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved job schedule.
+          schema:
+            title: Schedule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+          examples:
+            application/json:
+              d: {'@odata.type': '#com.sap.eic.api.JobScheduleDailyRepeatInInterval', DateScheduleType: DAILY, TimeScheduleType: REPEAT_IN_INTERVAL, RepeatEveryMinutes: 30, RepeatEveryHours: 0, RepeatFromHour: 1, RepeatToHour: 24, TimeZoneId: UTC}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    patch:
+      tags: [Job Schedules]
+      summary: Update fields of a job's schedule configuration.
+      description: |-
+        You can use the following request for minor updates to an existing job's schedule. Only the fields provided in the request body are updated while all others are left unchanged (merge semantics). Updating schedule fields requires providing the schedule's `@odata.type`. Attempting to change fields `@odata.type`, `DateScheduleType` or `TimeScheduleType` via PATCH requests is rejected with HTTP 400 (this can be achieved by replacing the complete schedule via PUT). Examples:
+        - ```PATCH /Jobs/MyCustomCleanup/Schedule```
+      operationId: updateJobSchedule
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      - name: body
+        in: body
+        required: true
+        description: Fields to update. `@odata.type` is required to determine the concrete subtype and cannot be changed.
+        schema: {$ref: '#/definitions/com.sap.eic.api.JobSchedulePatchRequest'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Job schedule updated successfully.
+          schema:
+            title: Schedule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+          examples:
+            application/json:
+              d:
+                '@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime'
+                DateScheduleType: WEEKLY
+                Weekdays: [MON, FRI]
+                TimeScheduleType: ON_TIME
+                OnHour: 5
+                OnMinute: 45
+                TimeZoneId: UTC
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+    put:
+      tags: [Job Schedules]
+      summary: Reconfigure a job's schedule.
+      description: |-
+        You can use the following request to replace the schedule of an existing job with a new one. This operation does not retain any stored schedule configuration values (full replacement semantics). Therefore, a complete schedule object must be provided with all required fields including `@odata.type` (which may differ from the former schedule). Omitting required schedule fields results in HTTP 400. Examples:
+        - ```PUT /Jobs/MyCustomCleanup/Schedule```
+      operationId: updateJobSchedule
+      parameters:
+      - {$ref: '#/parameters/JobId'}
+      - name: body
+        in: body
+        required: true
+        description: Complete schedule object to replace the current schedule. `@odata.type` is required to identify the concrete schedule subtype.
+        schema: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Job schedule updated successfully.
+          schema:
+            title: Schedule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+          examples:
+            application/json:
+              d:
+                '@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime'
+                DateScheduleType: WEEKLY
+                Weekdays: [MON, FRI]
+                TimeScheduleType: ON_TIME
+                OnHour: 4
+                OnMinute: 30
+                TimeZoneId: UTC
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /:
+    get:
+      tags: [CSRF Token Handling]
+      produces: [application/json]
+      description: You can use the following request to get the CSRF token which is required for write access via POST, PATCH and DELETE operations. Copy the received X-CSRF-Token from the response header.
+      summary: Get CSRF token.
+      parameters:
+      - {description: To retrieve a new CSRF token the value of the header must be set to ```Fetch```., in: header, name: X-CSRF-Token, required: true, type: string, default: Fetch}
+      responses:
+        '200':
+          description: The header provides the CSRF token.
+          headers:
+            X-CSRF-Token: {description: CSRF token that can be used for all modifying requests., type: string}
+        default: {$ref: '#/responses/error'}
+parameters:
+  JobId: {name: jobId, in: path, required: true, type: string, description: 'Job identifier. This is the URL-encoded job name (e.g. `Crun%20Frun%20Data%20Transfer` for `Crun Frun Data Transfer`). Example: ```CleanupTraceEntries```'}
+  top: {name: $top, in: query, description: Show only the first n items., type: integer, format: int32, minimum: 0}
+  skip: {name: $skip, in: query, description: Skip the first n items., type: integer, format: int32, minimum: 0}
+  count: {name: $count, in: query, description: Include number of items in the response., type: boolean}
+responses:
+  '400': {description: Bad Request. Wrong format or structure of the provided request body or parameters.}
+  '401': {description: Unauthorized. Authorization information is missing or invalid.}
+  '403': {description: 'Forbidden. The required permissions to access the resource are missing, or the operation is not allowed (e.g. deleting a system job).'}
+  '404': {description: Not found. The requested resource could not be found.}
+  '409': {description: 'Conflict. The request could not be completed due to a conflict (e.g. a job with the same name already exists, or the job is currently executing).'}
+  '429': {description: Too many requests. Server's rate limit exceeded.}
+  '500': {description: Internal server error. The requested operation led to an error during execution.}
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}
+    examples:
+      application/json:
+        error:
+          code: <error code>
+          message: <error message>
+          target: <error target>
+          details:
+          - {code: <error code>, target: <error target>, message: <error message>}
+definitions:
+  com.sap.eic.api.ActionId:
+    title: ActionId
+    type: string
+    enum: [CleanupDiagnostics, CleanupDataStoreEntries, EdgeUpdateExpiringRefreshTokens, CleanupMonitoringData, ConsolidateMPLAggregationData, CleanupTraceEntries, UpdateMplStatus, CALMDataTransferCommand]
+  com.sap.eic.api.JobExecutionState:
+    title: JobExecutionState
+    type: string
+    enum: [COMPLETED, FAILED, NOT_YET_EXECUTED, SKIPPED, RETRY]
+  com.sap.eic.api.DateScheduleType:
+    title: DateScheduleType
+    type: string
+    enum: [DAILY, WEEKLY, MONTHLY, ON_DATE]
+  com.sap.eic.api.TimeScheduleType:
+    title: TimeScheduleType
+    type: string
+    enum: [ON_TIME, REPEAT_IN_INTERVAL]
+  com.sap.eic.api.Weekday:
+    title: Weekday
+    type: string
+    enum: [SUN, MON, TUE, WED, THU, FRI, SAT]
+  com.sap.eic.api.JobParameter:
+    title: JobParameter
+    type: object
+    description: Abstract base type for job parameters. Use the concrete subtypes `JobParameterInteger`, `JobParameterString`, `JobParameterDuration`, or `JobParameterDate` with the appropriate `@odata.type` discriminator.
+    required: [Name]
+    properties:
+      '@odata.type': {type: string, description: 'OData type discriminator. Example: `#com.sap.eic.api.JobParameterInteger`'}
+      Name: {type: string, description: Parameter name.}
+  com.sap.eic.api.JobParameterInteger:
+    title: JobParameterInteger
+    description: Parameter with numeric value.
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+    - type: object
+      properties:
+        Value: {type: integer, format: int32}
+  com.sap.eic.api.JobParameterString:
+    title: JobParameterString
+    description: Parameter with textual value.
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+    - type: object
+      properties:
+        Value: {type: string}
+  com.sap.eic.api.JobParameterDuration:
+    title: JobParameterDuration
+    description: 'Parameter with duration value in ISO 8601 format. Only basic duration definitions with a single time unit are supported, for example: ```PT2H```'
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+    - type: object
+      properties:
+        Value: {type: string, description: 'Duration in ISO 8601 format. Example: `PT30M`'}
+  com.sap.eic.api.JobParameterDate:
+    title: JobParameterDate
+    description: Parameter with date/time value in ISO 8601 format.
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+    - type: object
+      properties:
+        Value: {type: string, format: date-time, description: 'Date/time in ISO 8601 format. Example: `2026-03-01T02:00:00Z`'}
+  com.sap.eic.api.Job:
+    title: Job
+    type: object
+    required: [Id, Name, ActionId, IsSystemJob, Parameters]
+    properties:
+      Id: {type: string, description: 'URL-encoded job name, used for addressing single entities. Example: `Crun%20Frun%20Data%20Transfer`'}
+      Name: {type: string, description: 'Job name as shown in the UI. Example: `Crun Frun Data Transfer`'}
+      ActionId: {$ref: '#/definitions/com.sap.eic.api.ActionId'}
+      LastExecutionState: {$ref: '#/definitions/com.sap.eic.api.JobExecutionState'}
+      LastExecutionTime: {type: string, format: date-time, description: Timestamp of the last execution., example: '2026-03-01T02:00:00Z'}
+      NextExecutionTime: {type: string, format: date-time, description: Timestamp of the next scheduled execution., example: '2026-03-02T02:00:00Z'}
+      LastChangedBy: {type: string, description: User who last changed the job configuration.}
+      LastChangedOn: {type: string, format: date-time, description: Timestamp when the job configuration was last changed., example: '2026-01-15T10:30:00Z'}
+      IsSystemJob: {type: boolean, description: Indicates whether this is a system job. System jobs cannot be deleted.}
+      Parameters:
+        type: array
+        description: Current parameter values configured for this job instance.
+        items: {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+      Schedule: {description: Navigation property. Present only when expanded., readOnly: true, $ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+  com.sap.eic.api.JobCreateRequest:
+    title: JobCreateRequest
+    type: object
+    required: [Name, ActionId, Schedule]
+    properties:
+      Name: {type: string, description: Unique job name. Must not already exist.}
+      ActionId: {$ref: '#/definitions/com.sap.eic.api.ActionId'}
+      Parameters:
+        type: array
+        description: Optional parameter values. If omitted, defaults defined by the action are used.
+        items: {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+      Schedule: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+    example:
+      Name: MyCustomCleanup
+      ActionId: CleanupTraceEntries
+      Parameters:
+      - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 60}
+      Schedule: {'@odata.type': '#com.sap.eic.api.JobScheduleDailyOnTime', DateScheduleType: DAILY, TimeScheduleType: ON_TIME, OnHour: 3, OnMinute: 0, TimeZoneId: UTC}
+  com.sap.eic.api.JobPatchRequest:
+    title: JobPatchRequest
+    type: object
+    description: Updatable fields of a job. `Name` and `ActionId` cannot be changed. Only the provided parameters and schedule properties are updated; all others retain their current values.
+    properties:
+      Parameters:
+        type: array
+        description: Parameters to update. Only the provided parameters are updated; omitted parameters retain their current values.
+        items: {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+      Schedule: {$ref: '#/definitions/com.sap.eic.api.JobSchedulePatchRequest'}
+    example:
+      Parameters:
+      - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 120}
+      Schedule: {'@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime', OnHour: 9, OnMinute: 30}
+  com.sap.eic.api.JobUpdateRequest:
+    title: JobUpdateRequest
+    type: object
+    description: Updatable fields of a job. `Name` and `ActionId` cannot be changed. All provided parameters are updated; omitted parameters are reset to their default values. Complete schedule definition comprising all required fields.
+    required: [Schedule]
+    properties:
+      Parameters:
+        type: array
+        description: Parameters to update. All provided parameters are updated; omitted parameters are reset to their default values
+        items: {$ref: '#/definitions/com.sap.eic.api.JobParameter'}
+      Schedule: {$ref: '#/definitions/com.sap.eic.api.JobSchedule'}
+    example:
+      Parameters:
+      - {'@odata.type': '#com.sap.eic.api.JobParameterInteger', Name: olderThanOrEqualMinutes, Value: 120}
+      Schedule:
+        '@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime'
+        DateScheduleType: WEEKLY
+        TimeScheduleType: ON_TIME
+        OnHour: 4
+        OnMinute: 30
+        TimeZoneId: UTC
+        Weekdays: [MON, FRI]
+  com.sap.eic.api.JobSchedule:
+    title: JobSchedule
+    type: object
+    description: |-
+      Abstract base type for job schedules. Use `@odata.type` to identify the concrete subtype:
+      - `#com.sap.eic.api.JobScheduleDailyOnTime`
+      - `#com.sap.eic.api.JobScheduleDailyRepeatInInterval`
+      - `#com.sap.eic.api.JobScheduleWeeklyOnTime`
+      - `#com.sap.eic.api.JobScheduleWeeklyRepeatInInterval`
+      - `#com.sap.eic.api.JobScheduleMonthlyOnTime`
+      - `#com.sap.eic.api.JobScheduleMonthlyRepeatInInterval`
+      - `#com.sap.eic.api.JobScheduleOnDateOnTime`
+      - `#com.sap.eic.api.JobScheduleOnDateRepeatInInterval`
+    required: ['@odata.type', DateScheduleType, TimeScheduleType]
+    properties:
+      '@odata.type': {type: string, description: OData type discriminator identifying the concrete schedule subtype.}
+      DateScheduleType: {$ref: '#/definitions/com.sap.eic.api.DateScheduleType'}
+      TimeScheduleType: {$ref: '#/definitions/com.sap.eic.api.TimeScheduleType'}
+      OnHour: {type: integer, format: int32, description: Hour at which to run (0-23). Applicable for `ON_TIME` schedules.}
+      OnMinute: {type: integer, format: int32, description: Minute at which to run (0-59). Applicable for `ON_TIME` schedules.}
+      RepeatEveryMinutes: {type: integer, format: int32, description: Repeat interval in minutes. Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatEveryHours: {type: integer, format: int32, description: Repeat interval in hours. Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatFromHour: {type: integer, format: int32, description: Start hour of the repeat window (0-23). Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatToHour: {type: integer, format: int32, description: End hour of the repeat window (0-24). Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      TimeZoneId: {type: string, description: 'Time zone identifier. Example: `UTC`, `UTC+1`'}
+      Weekdays:
+        type: array
+        description: Days of the week on which to run. Applicable for `WEEKLY` schedules.
+        items: {$ref: '#/definitions/com.sap.eic.api.Weekday'}
+      OnDayOfMonth: {type: integer, format: int32, description: Day of the month on which to run (1-31). Applicable for `MONTHLY` schedules.}
+      OnDay: {type: integer, format: int32, description: Day of the specific date. Applicable for `ON_DATE` schedules.}
+      OnMonth: {type: integer, format: int32, description: Month of the specific date (1-12). Applicable for `ON_DATE` schedules.}
+      OnYear: {type: integer, format: int32, description: Year of the specific date. Applicable for `ON_DATE` schedules.}
+    example:
+      '@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime'
+      DateScheduleType: WEEKLY
+      Weekdays: [MON, FRI]
+      TimeScheduleType: ON_TIME
+      OnHour: 4
+      OnMinute: 30
+      TimeZoneId: UTC
+  com.sap.eic.api.JobSchedulePatchRequest:
+    title: JobSchedulePatchRequest
+    type: object
+    description: Updatable fields of a job schedule. `@odata.type` is required to determine the concrete schedule subtype. Fields `@odata.type`, `TimeScheduleType`, and `DateScheduleType` cannot be changed.
+    required: ['@odata.type']
+    properties:
+      '@odata.type': {type: string, description: OData type discriminator identifying the concrete schedule subtype.}
+      OnHour: {type: integer, format: int32, description: Hour at which to run (0-23). Applicable for `ON_TIME` schedules.}
+      OnMinute: {type: integer, format: int32, description: Minute at which to run (0-59). Applicable for `ON_TIME` schedules.}
+      RepeatEveryMinutes: {type: integer, format: int32, description: Repeat interval in minutes. Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatEveryHours: {type: integer, format: int32, description: Repeat interval in hours. Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatFromHour: {type: integer, format: int32, description: Start hour of the repeat window (0-23). Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      RepeatToHour: {type: integer, format: int32, description: End hour of the repeat window (0-24). Applicable for `REPEAT_IN_INTERVAL` schedules.}
+      TimeZoneId: {type: string, description: 'Time zone identifier. Example: `UTC`, `UTC+1`'}
+      Weekdays:
+        type: array
+        description: Days of the week on which to run. Applicable for `WEEKLY` schedules.
+        items: {$ref: '#/definitions/com.sap.eic.api.Weekday'}
+      OnDayOfMonth: {type: integer, format: int32, description: Day of the month on which to run (1-31). Applicable for `MONTHLY` schedules.}
+      OnDay: {type: integer, format: int32, description: Day of the specific date. Applicable for `ON_DATE` schedules.}
+      OnMonth: {type: integer, format: int32, description: Month of the specific date (1-12). Applicable for `ON_DATE` schedules.}
+      OnYear: {type: integer, format: int32, description: Year of the specific date. Applicable for `ON_DATE` schedules.}
+    example: {'@odata.type': '#com.sap.eic.api.JobScheduleWeeklyOnTime', OnHour: 5, OnMinute: 45}
+  odata.error:
+    type: object
+    required: [error]
+    properties:
+      error:
+        type: object
+        properties:
+          code: {type: string}
+          message: {type: string}
+          target: {type: string}
+          details:
+            type: array
+            items:
+              type: object
+              properties:
+                code: {type: string}
+                target: {type: string}
+                message: {type: string}

@@ -1,0 +1,1267 @@
+swagger: '2.0'
+info: {title: API Portal - Rules (CF), description: 'A proxy endpoint can connect to one or more target endpoints. A route connects the proxy endpoint to the target endpoint. It determines which target endpoint to invoke based on the proxy endpoint configuration. The Route Rule is basically a conditional statement that determines the target endpoint. When more than one target endpoint is available, the Route Rule evaluates the condition and, if true, the request is forwarded to the named target endpoint.', version: '1.0', x-targetEndpoint: 'https://us10trialapiportal.cfapps.us10.hana.ondemand.com/apiportal/api/1.0/Management.svc/'}
+securityDefinitions:
+  OAuth2_ClientCredentials:
+    type: oauth2
+    flow: application
+    tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+    scopes: {}
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/docs/SAP_CLOUD_PLATFORM_API_MANAGEMENT/66d066d903c2473f81ec33acfe2ccdb4/c0842d5698eb4143b8cfa528b5435cf9.html'}
+x-sap-api-type: ODATA
+host: sandbox.api.sap.com
+schemes: [https]
+x-sap-shortText: Define actions that get triggered in response to an event.
+basePath: /sapapimanagement/apiportal/Management.svc
+x-servers:
+- url: https://eu20apiportal.cfapps.eu20.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal EU20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal EU20 tokenUrl}
+- url: https://us20apiportal.cfapps.us20.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal US20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal US20 tokenUrl}
+- url: https://jp20apiportal.cfapps.jp20.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal jp20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal jp20 tokenUrl}
+- url: https://ap21apiportal.cfapps.ap21.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal ap21 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap21 tokenUrl}
+- url: https://us21apiportal.cfapps.us21.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal us21 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal us21 tokenUrl}
+- url: https://ap10apiportal.cfapps.ap10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal ap10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap10 tokenUrl}
+- url: https://br10apiportal.cfapps.br10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal br10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal br10 tokenUrl}
+- url: https://jp10apiportal.cfapps.jp10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal jp10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal jp10 tokenUrl}
+- url: https://eu10apiportal.cfapps.eu10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal eu10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal eu10 tokenUrl}
+- url: https://us10apiportal.cfapps.us10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal us10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal us10 tokenUrl}
+- url: https://ca10apiportal.cfapps.ca10.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal ca10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ca10 tokenUrl}
+- url: https://ap11apiportal.cfapps.ap11.hana.ondemand.com/apiportal/api/1.0/Management.svc
+  description: API Portal ap11 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap11 tokenUrl}
+consumes: [application/json]
+produces: [application/json]
+tags:
+- {name: Route Rules}
+- {name: Fault Rules}
+- {name: Default Fault Rules}
+definitions:
+  odata.error:
+    type: object
+    properties:
+      error: {$ref: '#/definitions/odata.error.main'}
+  odata.error.main:
+    type: object
+    properties:
+      code: {type: string}
+      message: {$ref: '#/definitions/odata.error.message'}
+      innererror: {description: The contents of this object are service-defined}
+  odata.error.message:
+    type: object
+    properties:
+      lang: {type: string}
+      value: {type: string}
+  apiportal.Resource:
+    type: object
+    properties:
+      locale: {type: string, maxLength: 5}
+      long_text:
+        type: [string, 'null']
+        maxLength: 2048
+      medium_text:
+        type: [string, 'null']
+        maxLength: 255
+      object_id: {type: string, maxLength: 255}
+      short_text:
+        type: [string, 'null']
+        maxLength: 255
+      type: {type: string, maxLength: 2}
+    title: Resource
+  apiportal.APIProxy:
+    type: object
+    properties:
+      FK_PROVIDERNAME:
+        type: [string, 'null']
+        maxLength: 200
+      isPublished:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 255}
+      provider_name:
+        type: [string, 'null']
+        maxLength: 200
+      service_code:
+        type: [string, 'null']
+        maxLength: 20
+      state:
+        type: [string, 'null']
+        maxLength: 10
+      status_code:
+        type: [string, 'null']
+        maxLength: 20
+      version:
+        type: [string, 'null']
+        maxLength: 10
+      title:
+        type: [string, 'null']
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      apiProducts:
+        title: Related Collection(apiportal.APIProduct)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProduct'}
+      apiProvider: {$ref: '#/definitions/apiportal.APIProvider'}
+      fileResources:
+        title: Related Collection(apiportal.FileResource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.FileResource'}
+      policies:
+        title: Related Collection(apiportal.Policy)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Policy'}
+      proxyEndPoints:
+        title: Related Collection(apiportal.APIProxyEndPoint)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      resources:
+        title: Related Collection(apiportal.Resource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Resource'}
+      targetEndPoints:
+        title: Related Collection(apiportal.APITargetEndPoint)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APITargetEndPoint'}
+    title: APIProxy
+  apiportal.Developer:
+    type: object
+    properties:
+      country:
+        type: [string, 'null']
+      emailId: {type: string, maxLength: 255}
+      firstName: {type: string, maxLength: 255}
+      id: {type: string, maxLength: 256}
+      lastName: {type: string, maxLength: 255}
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      applications:
+        title: Related Collection(apiportal.Application)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Application'}
+    title: Developer
+  apiportal.EndPointProperty:
+    type: object
+    properties:
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 512
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_TARGETENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      value:
+        type: [string, 'null']
+      proxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      targetEndPoint: {$ref: '#/definitions/apiportal.APITargetEndPoint'}
+    title: EndPointProperty
+  apiportal.APITargetEndPoint:
+    type: object
+    properties:
+      FK_API_NAME:
+        type: [string, 'null']
+        maxLength: 255
+      FK_DEFAULTFAULTRULE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      id: {type: string, maxLength: 36}
+      isDefault:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_POSTFLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_PREFLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      provider_id:
+        type: [string, 'null']
+        maxLength: 200
+      relativePath:
+        type: [string, 'null']
+        maxLength: 255
+      url:
+        type: [string, 'null']
+        maxLength: 2083
+      apiProxy: {$ref: '#/definitions/apiportal.APIProxy'}
+      conditionalFlows:
+        title: Related Collection(apiportal.ConditionalFlowRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.ConditionalFlowRule'}
+      defaultFaultRule: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+      faultRules:
+        title: Related Collection(apiportal.FaultRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.FaultRule'}
+      postFlow: {$ref: '#/definitions/apiportal.FlowRule'}
+      preFlow: {$ref: '#/definitions/apiportal.FlowRule'}
+      properties:
+        title: Related Collection(apiportal.EndPointProperty)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.EndPointProperty'}
+    title: APITargetEndPoint
+  apiportal.Certificate:
+    type: object
+    properties:
+      certName:
+        type: [string, 'null']
+        maxLength: 256
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 200}
+      storeName: {type: string, maxLength: 200}
+      password:
+        type: [string, 'null']
+        maxLength: 256
+      storeType:
+        type: [string, 'null']
+        maxLength: 256
+      expiryDate:
+        type: [string, 'null']
+        maxLength: 256
+      issuerEmail:
+        type: [string, 'null']
+        maxLength: 2048
+      subjectEmail:
+        type: [string, 'null']
+        maxLength: 2048
+      signAlgName:
+        type: [string, 'null']
+        maxLength: 256
+      isValid:
+        type: [string, 'null']
+        maxLength: 256
+      validFrom:
+        type: [string, 'null']
+        maxLength: 256
+      version:
+        type: [string, 'null']
+        maxLength: 256
+      content:
+        type: [string, 'null']
+        format: base64url
+      certificateStore: {$ref: '#/definitions/apiportal.CertificateStore'}
+    title: Certificate
+  apiportal.Step:
+    type: object
+    properties:
+      condition:
+        type: [string, 'null']
+      FK_DEFAULTFAULTRULE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_FAULTRULE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      id: {type: string, maxLength: 36}
+      policy_name:
+        type: [string, 'null']
+        maxLength: 255
+      sequence:
+        type: [integer, 'null']
+        format: int32
+      FK_STREAM_ID:
+        type: [string, 'null']
+        maxLength: 36
+      defaultFaultRule: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+      faultRule: {$ref: '#/definitions/apiportal.FaultRule'}
+      stream: {$ref: '#/definitions/apiportal.Stream'}
+    title: Step
+  apiportal.APIProxyEndPoint:
+    type: object
+    properties:
+      FK_API_NAME:
+        type: [string, 'null']
+        maxLength: 255
+      base_path:
+        type: [string, 'null']
+      FK_DEFAULTFAULTRULE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      id: {type: string, maxLength: 36}
+      isDefault:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_POSTCLIENTFLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_POSTFLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_PREFLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      apiProxy: {$ref: '#/definitions/apiportal.APIProxy'}
+      apiResources:
+        title: Related Collection(apiportal.APIResource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIResource'}
+      conditionalFlows:
+        title: Related Collection(apiportal.ConditionalFlowRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.ConditionalFlowRule'}
+      defaultFaultRule: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+      faultRules:
+        title: Related Collection(apiportal.FaultRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.FaultRule'}
+      postClientFlow: {$ref: '#/definitions/apiportal.FlowRule'}
+      postFlow: {$ref: '#/definitions/apiportal.FlowRule'}
+      preFlow: {$ref: '#/definitions/apiportal.FlowRule'}
+      properties:
+        title: Related Collection(apiportal.EndPointProperty)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.EndPointProperty'}
+      routeRules:
+        title: Related Collection(apiportal.RouteRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.RouteRule'}
+      virtualhosts:
+        title: Related Collection(apiportal.VirtualHost)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.VirtualHost'}
+    title: APIProxyEndPoint
+  apiportal.RouteRule:
+    type: object
+    properties:
+      conditions:
+        type: [string, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      sequence:
+        type: [integer, 'null']
+        format: int32
+      targetEndPointName:
+        type: [string, 'null']
+        maxLength: 255
+      url:
+        type: [string, 'null']
+      faultRules:
+        title: Related Collection(apiportal.FaultRule)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.FaultRule'}
+      proxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+    title: RouteRule
+  apiportal.DefaultFaultRulePost:
+    type: object
+    properties:
+      alwaysEnforce:
+        type: [boolean, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_TARGETENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+  apiportal.DefaultFaultRule:
+    type: object
+    properties:
+      alwaysEnforce:
+        type: [boolean, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_TARGETENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      proxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      steps:
+        title: Related Collection(apiportal.Step)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Step'}
+      targetEndPoint: {$ref: '#/definitions/apiportal.APITargetEndPoint'}
+    title: DefaultFaultRule
+  apiportal.Stream:
+    type: object
+    properties:
+      FK_FLOW_ID:
+        type: [string, 'null']
+        maxLength: 36
+      id: {type: string, maxLength: 36}
+      isRequest:
+        type: [boolean, 'null']
+      flow: {$ref: '#/definitions/apiportal.FlowRule'}
+      steps:
+        title: Related Collection(apiportal.Step)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Step'}
+    title: Stream
+  apiportal.APIResource:
+    type: object
+    properties:
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      canShowDelete:
+        type: [boolean, 'null']
+      canShowGet:
+        type: [boolean, 'null']
+      canShowPost:
+        type: [boolean, 'null']
+      canShowPut:
+        type: [boolean, 'null']
+      id: {type: string, maxLength: 36}
+      isDeleteChecked:
+        type: [boolean, 'null']
+      isGetChecked:
+        type: [boolean, 'null']
+      isPostChecked:
+        type: [boolean, 'null']
+      isPutChecked:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      proxyEndPointName:
+        type: [string, 'null']
+      resource_path:
+        type: [string, 'null']
+      title:
+        type: [string, 'null']
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      apiProxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      documentations:
+        title: Related Collection(apiportal.Documentation)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Documentation'}
+      resources:
+        title: Related Collection(apiportal.Resource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Resource'}
+    title: APIResource
+  apiportal.FaultRule:
+    type: object
+    properties:
+      condition:
+        type: [string, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_ROUTERULE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_TARGETENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      proxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      routeRule: {$ref: '#/definitions/apiportal.RouteRule'}
+      steps:
+        title: Related Collection(apiportal.Step)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Step'}
+      targetEndPoint: {$ref: '#/definitions/apiportal.APITargetEndPoint'}
+    title: FaultRule
+  apiportal.FileResource:
+    type: object
+    properties:
+      content:
+        type: [string, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      scope:
+        type: [string, 'null']
+        maxLength: 20
+      type:
+        type: [string, 'null']
+        maxLength: 10
+      apiProxies:
+        title: Related Collection(apiportal.APIProxy)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProxy'}
+    title: FileResource
+  apiportal.CertificateStore:
+    type: object
+    properties:
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 200}
+      storeType:
+        type: [string, 'null']
+        maxLength: 20
+      certificates:
+        title: Related Collection(apiportal.Certificate)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Certificate'}
+    title: CertificateStore
+  apiportal.KeyMapEntryValue:
+    type: object
+    properties:
+      map_name: {type: string, maxLength: 255}
+      name: {type: string, maxLength: 255}
+      value:
+        type: [string, 'null']
+        maxLength: 255
+      keyMapEntry: {$ref: '#/definitions/apiportal.KeyMapEntry'}
+    title: KeyMapEntryValue
+  apiportal.APIProduct:
+    type: object
+    properties:
+      isPublished:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 255}
+      published_at:
+        type: [string, 'null']
+        format: date-time
+      published_by:
+        type: [string, 'null']
+        maxLength: 256
+      quotaCount:
+        type: [integer, 'null']
+        format: int32
+      quotaInterval:
+        type: [integer, 'null']
+        format: int32
+      quotaTimeUnit:
+        type: [string, 'null']
+        maxLength: 10
+      scope:
+        type: [string, 'null']
+        maxLength: 255
+      status_code:
+        type: [string, 'null']
+        maxLength: 20
+      version:
+        type: [string, 'null']
+        maxLength: 10
+      title:
+        type: [string, 'null']
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      apiProxies:
+        title: Related Collection(apiportal.APIProxy)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProxy'}
+      apiResources:
+        title: Related Collection(apiportal.APIResource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIResource'}
+      applications:
+        title: Related Collection(apiportal.Application)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Application'}
+      resources:
+        title: Related Collection(apiportal.Resource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Resource'}
+    title: APIProduct
+  apiportal.APIProvider:
+    type: object
+    properties:
+      isOnPremise:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 200}
+      sslInfo: {$ref: '#/definitions/apiportal.SSLInfo'}
+      url:
+        type: [string, 'null']
+      title:
+        type: [string, 'null']
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      destType:
+        type: [string, 'null']
+        maxLength: 10
+      host:
+        type: [string, 'null']
+        maxLength: 2048
+      port:
+        type: [integer, 'null']
+        format: int32
+      useSSL:
+        type: [boolean, 'null']
+      trustAll:
+        type: [boolean, 'null']
+      userName:
+        type: [string, 'null']
+        maxLength: 2048
+      password:
+        type: [string, 'null']
+        maxLength: 126
+      authType:
+        type: [string, 'null']
+        maxLength: 126
+      pathPrefix:
+        type: [string, 'null']
+        maxLength: 2048
+      timeout:
+        type: [integer, 'null']
+        format: int32
+      cockpit_url:
+        type: [string, 'null']
+      apiProxies:
+        title: Related Collection(apiportal.APIProxy)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProxy'}
+      resources:
+        title: Related Collection(apiportal.Resource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Resource'}
+    title: APIProvider
+  apiportal.KeyMapEntry:
+    type: object
+    properties:
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name: {type: string, maxLength: 255}
+      keyMapEntryValues:
+        title: Related Collection(apiportal.KeyMapEntryValue)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.KeyMapEntryValue'}
+    title: KeyMapEntry
+  apiportal.FlowRule:
+    type: object
+    properties:
+      id: {type: string, maxLength: 36}
+      FK_REQUEST_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_RESPONSE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      request: {$ref: '#/definitions/apiportal.Stream'}
+      response: {$ref: '#/definitions/apiportal.Stream'}
+    title: FlowRule
+  apiportal.ConditionalFlowRule:
+    type: object
+    properties:
+      FK_APIRESOURCE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      conditions:
+        type: [string, 'null']
+      id: {type: string, maxLength: 36}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      FK_PROXYENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      readOnly:
+        type: [boolean, 'null']
+      FK_REQUEST_ID:
+        type: [string, 'null']
+        maxLength: 36
+      FK_RESPONSE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      sequence:
+        type: [integer, 'null']
+        format: int32
+      FK_TARGETENDPOINT_ID:
+        type: [string, 'null']
+        maxLength: 36
+      apiResource: {$ref: '#/definitions/apiportal.APIResource'}
+      proxyEndPoint: {$ref: '#/definitions/apiportal.APIProxyEndPoint'}
+      request: {$ref: '#/definitions/apiportal.Stream'}
+      response: {$ref: '#/definitions/apiportal.Stream'}
+      targetEndPoint: {$ref: '#/definitions/apiportal.APITargetEndPoint'}
+    title: ConditionalFlowRule
+  apiportal.Policy:
+    type: object
+    properties:
+      FK_API_NAME:
+        type: [string, 'null']
+        maxLength: 255
+      id: {type: string, maxLength: 36}
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      policy_content:
+        type: [string, 'null']
+      type:
+        type: [string, 'null']
+        maxLength: 40
+      apiProxy: {$ref: '#/definitions/apiportal.APIProxy'}
+    title: Policy
+  apiportal.Documentation:
+    type: object
+    properties:
+      FK_APIRESOURCE_ID:
+        type: [string, 'null']
+        maxLength: 36
+      apiResourceName:
+        type: [string, 'null']
+      content:
+        type: [string, 'null']
+      id: {type: string, maxLength: 36}
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      locale: {type: string, maxLength: 5}
+      mime_type:
+        type: [string, 'null']
+        maxLength: 256
+      apiResource: {$ref: '#/definitions/apiportal.APIResource'}
+    title: Documentation
+  apiportal.Application:
+    type: object
+    properties:
+      callbackurl:
+        type: [string, 'null']
+        maxLength: 255
+      FK_DEVELOPER_ID:
+        type: [string, 'null']
+        maxLength: 256
+      id: {type: string, maxLength: 36}
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      status_code:
+        type: [string, 'null']
+        maxLength: 20
+      valid_from:
+        type: [string, 'null']
+        format: date-time
+      valid_to:
+        type: [string, 'null']
+        format: date-time
+      version:
+        type: [string, 'null']
+        maxLength: 10
+      title:
+        type: [string, 'null']
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+      app_key:
+        type: [string, 'null']
+        maxLength: 256
+      app_secret:
+        type: [string, 'null']
+        maxLength: 1000
+      apiProducts:
+        title: Related Collection(apiportal.APIProduct)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.APIProduct'}
+      developer: {$ref: '#/definitions/apiportal.Developer'}
+      resources:
+        title: Related Collection(apiportal.Resource)
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/apiportal.Resource'}
+    title: Application
+  apiportal.VirtualHost:
+    type: object
+    properties:
+      id: {type: string, maxLength: 36}
+      isDefault:
+        type: [boolean, 'null']
+      isSSL:
+        type: [boolean, 'null']
+      life_cycle: {$ref: '#/definitions/apiportal.History'}
+      name:
+        type: [string, 'null']
+        maxLength: 255
+      projectPath:
+        type: [string, 'null']
+        maxLength: 255
+      virtual_host:
+        type: [string, 'null']
+        maxLength: 2048
+      virtual_port:
+        type: [integer, 'null']
+        format: int32
+    title: VirtualHost
+  apiportal.History:
+    type: object
+    properties:
+      changed_at:
+        type: [string, 'null']
+        format: date-time
+      changed_by:
+        type: [string, 'null']
+        maxLength: 255
+      created_at:
+        type: [string, 'null']
+        format: date-time
+      created_by:
+        type: [string, 'null']
+        maxLength: 255
+    title: History
+  apiportal.SSLInfo:
+    type: object
+    properties:
+      ciphers:
+        type: [string, 'null']
+        maxLength: 255
+      clientAuthEnabled:
+        type: [boolean, 'null']
+      enabled:
+        type: [boolean, 'null']
+      ignoreValidationErrors:
+        type: [boolean, 'null']
+      keyAlias:
+        type: [string, 'null']
+        maxLength: 255
+      keyStore:
+        type: [string, 'null']
+        maxLength: 255
+      protocols:
+        type: [string, 'null']
+        maxLength: 255
+      trustStore:
+        type: [string, 'null']
+        maxLength: 255
+    title: SSLInfo
+paths:
+  /RouteRules:
+    get:
+      summary: Route Rules defined by an API proxy
+      description: Returns all the Route Rules defined by an API proxy.
+      tags: [Route Rules]
+      parameters:
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/search'}
+      - {$ref: '#/parameters/filter'}
+      - {$ref: '#/parameters/count'}
+      - name: $orderby
+        in: query
+        description: Order items by property values
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [conditions, conditions desc, id, id desc, name, name desc, FK_PROXYENDPOINT_ID, FK_PROXYENDPOINT_ID desc, sequence, sequence desc, targetEndPointName, targetEndPointName desc, url, url desc]
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [conditions, id, name, FK_PROXYENDPOINT_ID, sequence, targetEndPointName, url]
+      - name: $expand
+        in: query
+        description: Expand related entities
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', faultRules, proxyEndPoint]
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of RouteRule
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/apiportal.RouteRule'}
+        default: {$ref: '#/responses/error'}
+  /RouteRules('{id}'):
+    get:
+      summary: Entity from Route Rules by key
+      description: Adds the entity from Route Rules by key.
+      tags: [Route Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [conditions, id, name, FK_PROXYENDPOINT_ID, sequence, targetEndPointName, url]
+      - name: $expand
+        in: query
+        description: Expand related entities
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', faultRules, proxyEndPoint]
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: RouteRule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/apiportal.RouteRule'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      summary: Entity from Rules by key
+      description: Deletes the entity from Route Rules by key.
+      tags: [Route Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - {name: If-Match, in: header, description: ETag, type: string}
+      responses:
+        '204': {description: Success}
+        default: {$ref: '#/responses/error'}
+  /FaultRules:
+    get:
+      summary: Get entities from FaultRules
+      description: In ProxyEndpoint or TargetEndpoint sections of the proxy configuration, there is a FaultRules XML block that contains one or more individual FaultRule sections. Each FaultRule represents a different error you want to handle.
+      tags: [Fault Rules]
+      parameters:
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/search'}
+      - {$ref: '#/parameters/filter'}
+      - {$ref: '#/parameters/count'}
+      - name: $orderby
+        in: query
+        description: Order items by property values, see [OData Sorting](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html#_Toc445374629)
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [condition, condition desc, id, id desc, name, name desc, FK_PROXYENDPOINT_ID, FK_PROXYENDPOINT_ID desc, FK_ROUTERULE_ID, FK_ROUTERULE_ID desc, FK_TARGETENDPOINT_ID, FK_TARGETENDPOINT_ID desc]
+      - name: $select
+        in: query
+        description: Select properties to be returned, see [OData Select](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html#_Toc445374620)
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [condition, id, name, FK_PROXYENDPOINT_ID, FK_ROUTERULE_ID, FK_TARGETENDPOINT_ID]
+      - name: $expand
+        in: query
+        description: Expand related entities, see [OData Expand](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html#_Toc445374621)
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', proxyEndPoint, routeRule, steps, targetEndPoint]
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of FaultRule
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/apiportal.FaultRule'}
+        default: {$ref: '#/responses/error'}
+  /FaultRules('{id}'):
+    get:
+      summary: Get entity from FaultRules by key
+      description: In ProxyEndpoint or TargetEndpoint sections of the proxy configuration, there is a FaultRules XML block that contains one or more individual FaultRule sections. Each FaultRule represents a different error you want to handle.
+      tags: [Fault Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned, see [OData Select](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html#_Toc445374620)
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [condition, id, name, FK_PROXYENDPOINT_ID, FK_ROUTERULE_ID, FK_TARGETENDPOINT_ID]
+      - name: $expand
+        in: query
+        description: Expand related entities, see [OData Expand](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html#_Toc445374621)
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', proxyEndPoint, routeRule, steps, targetEndPoint]
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: FaultRule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/apiportal.FaultRule'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      summary: Delete entity from FaultRules
+      tags: [Fault Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - {name: If-Match, in: header, description: ETag, type: string}
+      responses:
+        '204': {description: Success}
+        default: {$ref: '#/responses/error'}
+  /DefaultFaultRules:
+    get:
+      summary: Get entities from DefaultFaultRules
+      description: A DefaultFaultRule acts an exception handler for any error that is not explicitly handled by another FaultRule. If the conditions for all FaultRules do not match the error, then the DefaultFaultRule handles the error.
+      tags: [Default Fault Rules]
+      parameters:
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/search'}
+      - {$ref: '#/parameters/filter'}
+      - {$ref: '#/parameters/count'}
+      - name: $orderby
+        in: query
+        description: Order items by property values
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [alwaysEnforce, alwaysEnforce desc, id, id desc, name, name desc, FK_PROXYENDPOINT_ID, FK_PROXYENDPOINT_ID desc, FK_TARGETENDPOINT_ID, FK_TARGETENDPOINT_ID desc]
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [alwaysEnforce, id, name, FK_PROXYENDPOINT_ID, FK_TARGETENDPOINT_ID]
+      - name: $expand
+        in: query
+        description: Expand related entities
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', proxyEndPoint, steps, targetEndPoint]
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of DefaultFaultRule
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+        default: {$ref: '#/responses/error'}
+    post:
+      summary: Add new entity to DefaultFaultRules
+      tags: [Default Fault Rules]
+      parameters:
+      - name: DefaultFaultRule
+        in: body
+        description: New entity
+        schema: {$ref: '#/definitions/apiportal.DefaultFaultRulePost'}
+      responses:
+        '201':
+          description: Created entity
+          schema:
+            title: Created DefaultFaultRule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+        '400':
+          description: Bad Request
+          schema: {$ref: '#/definitions/odata.error'}
+        '415':
+          description: Unsupported Media Type
+          schema: {$ref: '#/definitions/odata.error'}
+        '500':
+          description: Internal Server Error
+          schema: {$ref: '#/definitions/odata.error'}
+        default: {$ref: '#/responses/error'}
+  /DefaultFaultRules('{id}'):
+    get:
+      summary: Get entity from DefaultFaultRules by key
+      description: A DefaultFaultRule acts an exception handler for any error that is not explicitly handled by another FaultRule. If the conditions for all FaultRules do not match the error, then the DefaultFaultRule handles the error.
+      tags: [Default Fault Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: [alwaysEnforce, id, name, FK_PROXYENDPOINT_ID, FK_TARGETENDPOINT_ID]
+      - name: $expand
+        in: query
+        description: Expand related entities
+        type: array
+        uniqueItems: true
+        items: {type: string}
+        enum: ['*', proxyEndPoint, steps, targetEndPoint]
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: DefaultFaultRule
+            type: object
+            properties:
+              d: {$ref: '#/definitions/apiportal.DefaultFaultRule'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      summary: Delete entity from DefaultFaultRules
+      tags: [Default Fault Rules]
+      parameters:
+      - {name: id, in: path, required: true, description: 'key: id', type: string}
+      - {name: If-Match, in: header, description: ETag, type: string}
+      responses:
+        '204': {description: Success}
+        default: {$ref: '#/responses/error'}
+parameters:
+  top: {name: $top, in: query, description: Show only the first n items, type: integer}
+  skip: {name: $skip, in: query, description: Skip the first n items, type: integer}
+  count: {name: $count, in: query, description: Include count of items, type: boolean}
+  filter: {name: $filter, in: query, description: Filter items by property values, type: string}
+  search: {name: $search, in: query, description: Search items by search phrases, type: string}
+responses:
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}

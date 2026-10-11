@@ -1,0 +1,38 @@
+{
+  "name": "sap-integration-suite-mcp-server",
+  "version": "1.0.0",
+  "description": "A production-ready Model Context Protocol (MCP) server for the SAP Integration Suite, providing unified access to Cloud Integration, API Management, Event Mesh, Integration Assessment, Open Connectors, and Edge Integration Cell.",
+  "author": "Ridvan Polat <rp@ridvanpolat.com>",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "generate": "tsx scripts/generate-types-and-metadata.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "dotenv": "^16.4.7",
+    "yaml": "^2.7.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@rolldown/binding-darwin-arm64": "^1.2.13",
+    "@types/node": "^22.14.1",
+    "@types/swagger2openapi": "^7.0.4",
+    "msw": "^2.7.3",
+    "openapi-typescript": "^7.6.1",
+    "swagger2openapi": "^7.0.8",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vitest": "^5.0.3"
+  },
+  "license": "Apache-2.0"
+}

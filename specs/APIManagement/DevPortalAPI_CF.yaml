@@ -1,0 +1,546 @@
+x-odata-version: '4.0'
+swagger: '2.0'
+info: {title: Developer Hub - Product (CF), description: 'Developer Hub - Product API enables you to view and create API Products in Developer Hub. Resources related to retrieving application details and creating an application entity in Developer Hub is available in [Developer Hub - Application API](https://api.sap.com/api/DevPortal_Application/resource)  ', version: '1.0', x-targetEndpoint: 'https://us10trialdevportal.cfapps.us10.hana.ondemand.com/odata/1.0/data.svc'}
+securityDefinitions:
+  OAuth2_ClientCredentials:
+    type: oauth2
+    flow: application
+    tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+    scopes: {}
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Complete documentation on API Management, url: 'https://help.sap.com/viewer/66d066d903c2473f81ec33acfe2ccdb4/Cloud/en-US'}
+x-sap-api-type: ODATA
+host: sandbox.api.sap.com
+schemes: [https]
+x-sap-shortText: Enables you to view all available products.
+basePath: /sapapimanagement/odata/1.0/data.svc
+x-servers:
+- url: https://eu20devportal.cfapps.eu20.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub US1 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub US1 tokenUrl}
+- url: https://us20devportal.cfapps.us20.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub US20 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub US20 tokenUrl}
+- url: https://jp20devportal.cfapps.jp20.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub jp20 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub jp20 tokenUrl}
+- url: https://ap21devportal.cfapps.ap21.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub ap21 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap21 tokenUrl}
+- url: https://us21apiportal.cfapps.us21.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub us21 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub us21 tokenUrl}
+- url: https://ap10devportal.cfapps.ap10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub ap10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap10 tokenUrl}
+- url: https://br10devportal.cfapps.br10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub br10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub br10 tokenUrl}
+- url: https://jp10devportal.cfapps.jp10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub jp10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub jp10 tokenUrl}
+- url: https://eu10devportal.cfapps.eu10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub eu10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub eu10 tokenUrl}
+- url: https://us10devportal.cfapps.us10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub us10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub us10 tokenUrl}
+- url: https://ca10devportal.cfapps.ca10.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub ca10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ca10 tokenUrl}
+- url: https://ap11devportal.cfapps.ap11.hana.ondemand.com/odata/1.0/data.svc
+  description: Developer Hub ap11 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap11 tokenUrl}
+consumes: [application/json]
+produces: [application/json]
+definitions:
+  odata.error:
+    type: object
+    properties:
+      error: {$ref: '#/definitions/odata.error.main'}
+  odata.error.main:
+    type: object
+    properties:
+      code: {type: string}
+      message: {$ref: '#/definitions/odata.error.message'}
+      innererror: {description: The contents of this object are service-defined}
+  odata.error.message:
+    type: object
+    properties:
+      lang: {type: string}
+      value: {type: string}
+  developer.ApplicationsType:
+    type: object
+    x-keys: [id]
+    properties:
+      reg_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      id: {type: string, maxLength: 255}
+      version: {type: string, maxLength: 10}
+      developer_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 255
+      title: {type: string, maxLength: 255}
+      description:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 2048
+      app_key:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      app_secret:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 1000
+      callbackurl:
+        type: [string, 'null']
+        x-nullable: true
+      valid_from:
+        type: [string, 'null']
+        x-nullable: true
+        format: date-time
+      valid_to:
+        type: [string, 'null']
+        x-nullable: true
+        format: date-time
+      status_code:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 20
+      created_by:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 255
+      created_at:
+        type: [string, 'null']
+        x-nullable: true
+        format: date-time
+      modified_by:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 255
+      modified_at:
+        type: [string, 'null']
+        x-nullable: true
+        format: date-time
+      ToAPIProductsDetails:
+        type: array
+        items: {$ref: '#/definitions/developer.APIProductsType'}
+        x-relationship: {partner: ToApplicationDetails}
+  developer.APIProductsType:
+    type: object
+    properties:
+      name: {type: string, maxLength: 255}
+      title: {type: string, maxLength: 255}
+      reg_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      version: {type: string, maxLength: 10}
+      vendor:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+        example: string
+      shortText:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      productResources:
+        type: [string, 'null']
+        example: string
+      published_at:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      published_by:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      avgRating:
+        type: [number, string, 'null']
+        format: float
+        example: 3.14
+      ratingCount:
+        type: [string, 'null']
+        format: int64
+        example: '42'
+      isRestricted:
+        type: [boolean, 'null']
+      managed:
+        type: [boolean, 'null']
+      ToApplicationDetails:
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/developer.ApplicationsType'}
+      ToAPIProxies:
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/developer.APIProxiesType'}
+      ToRatePlans:
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/developer.RatePlansType'}
+      ToSubscriptions:
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/developer.SubscriptionsType'}
+    title: APIProductsType
+  developer.SubscriptionsType:
+    type: object
+    properties:
+      id: {type: string, maxLength: 256}
+      reg_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      app_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      product_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      developer_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      ratePlan_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      validFrom:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      validTo:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      app_name:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      isSubscribed:
+        type: [boolean, 'null']
+      status:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      comment:
+        type: [string, 'null']
+        maxLength: 2048
+        example: string
+      created_by:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      created_at:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      modified_by:
+        type: [string, 'null']
+        maxLength: 255
+        example: string
+      modified_at:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      ToApplication: {$ref: '#/definitions/developer.ApplicationsType'}
+      ToRatePlan: {$ref: '#/definitions/developer.RatePlansType'}
+      ToAPIProduct: {$ref: '#/definitions/developer.APIProductsType'}
+    title: SubscriptionsType
+  developer.RatePlansType:
+    type: object
+    properties:
+      reg_id:
+        type: [string, 'null']
+        maxLength: 256
+        example: string
+      id: {type: string, maxLength: 255}
+      name: {type: string, maxLength: 255}
+      isSeasonal:
+        type: [boolean, 'null']
+      frequency: {type: string, maxLength: 255}
+      description:
+        type: [string, 'null']
+        maxLength: 2048
+        example: string
+      rate:
+        type: [string, 'null']
+        example: string
+      currency: {type: string, maxLength: 50}
+      isActive: {type: boolean}
+      type:
+        type: [string, 'null']
+        maxLength: 50
+        example: string
+      validFrom:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      validTo:
+        type: [string, 'null']
+        example: /Date(1492098664000)/
+      ToSubscriptions:
+        type: object
+        properties:
+          results:
+            type: array
+            items: {$ref: '#/definitions/developer.SubscriptionsType'}
+    title: RatePlansType
+  developer.APIProxiesType:
+    type: object
+    x-keys: [name]
+    properties:
+      reg_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      version: {type: string, maxLength: 10}
+      name: {type: string, maxLength: 255}
+      title: {type: string, maxLength: 255}
+      description:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 2048
+      published_at:
+        type: [string, 'null']
+        x-nullable: true
+        format: date-time
+      published_by:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      releaseStatus:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 36
+      service_code:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 20
+      ToAPIProducts:
+        type: array
+        items: {$ref: '#/definitions/developer.APIProductsType'}
+        x-relationship: {partner: ToAPIProxies}
+      ToProxyEndPoints:
+        type: array
+        items: {$ref: '#/definitions/developer.ProxyEndPointsType'}
+        x-relationship: {}
+  developer.ProxyEndPointsType:
+    type: object
+    x-keys: [id]
+    properties:
+      id: {type: string, maxLength: 36}
+      reg_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      name: {type: string, maxLength: 255}
+      base_path: {type: string}
+      apiproxy_name:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 255
+      ToAPIResources:
+        type: array
+        description: This navigation property only contains information about the SWAGGER API resource.
+        items: {$ref: '#/definitions/developer.APIResourcesType'}
+        x-relationship: {}
+  developer.APIResourcesType:
+    type: object
+    x-keys: [id]
+    properties:
+      id: {type: string, maxLength: 36}
+      reg_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      title:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 255
+      description:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 2048
+      isGetChecked:
+        type: [boolean, 'null']
+        x-nullable: true
+      isPostChecked:
+        type: [boolean, 'null']
+        x-nullable: true
+      isPutChecked:
+        type: [boolean, 'null']
+        x-nullable: true
+      isDeleteChecked:
+        type: [boolean, 'null']
+        x-nullable: true
+      proxyendpoint_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 36
+      resource_path:
+        type: [string, 'null']
+        x-nullable: true
+      ToAPIResourceDocumentation:
+        type: array
+        items: {$ref: '#/definitions/developer.APIResourceDocumentationsType'}
+        x-relationship: {}
+  developer.APIResourceDocumentationsType:
+    type: object
+    x-keys: [id]
+    properties:
+      id: {type: string, maxLength: 36}
+      reg_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      mime_type:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 256
+      content:
+        type: [string, 'null']
+        x-nullable: true
+      apiresource_id:
+        type: [string, 'null']
+        x-nullable: true
+        maxLength: 36
+x-schemas:
+  Org.OData.Core.V1: {uri: 'http://localhost/examples/Org.OData.Core.V1.openapi.json'}
+  Core: {aliasFor: Org.OData.Core.V1}
+  com.sap.it.spc.ci.catalog: {}
+  developer: {}
+x-entityContainer:
+  name: APIMgmt
+  resources:
+    Applications:
+      kind: EntitySet
+      entityType: developer.ApplicationsType
+      navigationPropertyBindings: {ToAPIProductsDetails: APIProducts}
+    APIProducts:
+      kind: EntitySet
+      entityType: developer.APIProductsType
+      navigationPropertyBindings: {ToAPIProxies: APIProxies, ToApplicationDetails: Applications}
+    APIProxies:
+      kind: EntitySet
+      entityType: developer.APIProxiesType
+      navigationPropertyBindings: {ToAPIProducts: APIProducts, ToProxyEndPoints: ProxyEndPoints}
+    ProxyEndPoints:
+      kind: EntitySet
+      entityType: developer.ProxyEndPointsType
+      navigationPropertyBindings: {ToAPIResources: APIResources}
+    APIResources:
+      kind: EntitySet
+      entityType: developer.APIResourcesType
+      navigationPropertyBindings: {ToAPIResourceDocumentation: APIResourceDocumentations}
+    APIResourceDocumentations: {kind: EntitySet, entityType: developer.APIResourceDocumentationsType}
+paths:
+  /APIMgmt.APIProducts:
+    get:
+      tags: [API Product]
+      summary: Get all Product entities
+      description: A product is a vehicle that lets the Application developer know which APIs are exposed on the API Management portal. When you create an application, you select the Product to include in the application. For each application that you create, API Management generates an Application key and secret. Use this key to gain access to multiple products.
+      produces: [application/json]
+      parameters: []
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of APIProducts
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/developer.APIProductsType'}
+        default: {$ref: '#/responses/error'}
+  /APIMgmt.APIProducts('{name}'):
+    get:
+      tags: [API Product]
+      summary: Get a specific product
+      description: A product is a vehicle that lets the Application developer know which APIs are exposed on the API Management portal. When you create an application, you select the Product to include in the application. For each application that you create, API Management generates an Application key and secret. Use this key to gain access to multiple products.
+      produces: [application/json]
+      parameters:
+      - {name: name, description: name, in: path, required: true, type: string, format: ''}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: APIProduct
+            type: object
+            properties:
+              d: {$ref: '#/definitions/developer.APIProductsType'}
+        default: {$ref: '#/responses/error'}
+  /APIMgmt.APIProxies:
+    get:
+      tags: [API Proxy]
+      summary: Get all entities from API Proxy
+      description: An API is exposed in API Management as an API Proxy. An API Proxy is a discrete representation of an API. It is implemented as a set of configuration files, policies, and code snippets that rely on the resource information provided by API Management. The API Proxy decouples an API from any backend changes. This provides flexibility to application developers to continue calling the same API.
+      produces: [application/json]
+      parameters: []
+      responses:
+        '200':
+          description: Retrieved entities
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of APIProxies
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/developer.APIProxiesType'}
+        default: {$ref: '#/responses/error'}
+  /APIMgmt.APIProxies('{name}'):
+    get:
+      tags: [API Proxy]
+      summary: Get a specific entity from API Proxy
+      description: An API is exposed in API Management as an API Proxy. An API Proxy is a discrete representation of an API. It is implemented as a set of configuration files, policies, and code snippets that rely on the resource information provided by API Management. The API Proxy decouples an API from any backend changes. This provides flexibility to application developers to continue calling the same API.
+      produces: [application/json]
+      parameters:
+      - {name: name, description: name, in: path, required: true, type: string, format: ''}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: APIProxy
+            type: object
+            properties:
+              d: {$ref: '#/definitions/developer.APIProxiesType'}
+        default: {$ref: '#/responses/error'}
+responses:
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}

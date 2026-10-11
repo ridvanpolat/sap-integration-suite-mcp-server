@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info: {title: Management, description: 'Export and import Integration Assessment content to manage data across different tenants. These APIs help you move data smoothly, keeping your operations consistent across environments.', version: 1.0.0}
+servers:
+- url: https://intas-api.cfapps.{domain}/intas/management/v1
+  variables:
+    domain:
+      description: SAP BTP Region Host
+      default: ''
+      enum: [ap10.hana.ondemand.com, ap11.hana.ondemand.com, ap12.hana.ondemand.com, ap20.hana.ondemand.com, ap21.hana.ondemand.com, ap30.hana.ondemand.com, br10.hana.ondemand.com, br20.hana.ondemand.com, ca10.hana.ondemand.com, ca20.hana.ondemand.com, ch20.hana.ondemand.com, eu10.hana.ondemand.com, eu11.hana.ondemand.com, eu20.hana.ondemand.com, eu30.hana.ondemand.com, il30.hana.ondemand.com, in30.hana.ondemand.com, jp10.hana.ondemand.com, jp20.hana.ondemand.com, sa30.hana.ondemand.com, sa31.hana.ondemand.com, us10.hana.ondemand.com, us11.hana.ondemand.com, us20.hana.ondemand.com, us21.hana.ondemand.com, us30.hana.ondemand.com]
+tags:
+- {name: Content}
+paths:
+  /ExportContent:
+    get:
+      summary: Exports the entire content
+      tags: [Content]
+      parameters: []
+      responses:
+        '200':
+          description: Content exported as a zip file.
+          content:
+            application/zip:
+              schema: {type: string, format: binary, description: Content exported as a zip file.}
+        '400': {$ref: '#/components/responses/error_400'}
+        '401': {$ref: '#/components/responses/error_401'}
+        '403': {$ref: '#/components/responses/error_403'}
+      description: Export the complete content of the system, including custom-created entities.
+  /ImportContent:
+    post:
+      summary: Imports the content
+      tags: [Content]
+      requestBody:
+        required: true
+        description: Binary ZIP file containing the content to import
+        content:
+          application/zip:
+            schema: {type: string, format: binary, description: The binary ZIP file to be imported.}
+      responses:
+        '202': {description: Content imported successfully.}
+        '400': {$ref: '#/components/responses/error_400'}
+        '401': {$ref: '#/components/responses/error_401'}
+        '403': {$ref: '#/components/responses/error_403'}
+        '409': {$ref: '#/components/responses/error_409'}
+      description: Import the content to the system.
+components:
+  schemas:
+    error:
+      required: [error]
+      type: object
+      properties:
+        error:
+          required: [code, message]
+          type: object
+          properties:
+            code: {type: string}
+            message:
+              required: [lang, value]
+              type: object
+              properties:
+                lang: {type: string}
+                value: {type: string}
+  parameters:
+    top:
+      name: $top
+      in: query
+      description: Show only the first n items
+      schema: {type: integer, minimum: 0}
+      example: 50
+    skip:
+      name: $skip
+      in: query
+      description: Skip the first n items
+      schema: {type: integer, minimum: 0}
+    count:
+      name: $inlinecount
+      in: query
+      description: Include count of items
+      schema:
+        type: string
+        enum: [allpages, none]
+  responses:
+    error:
+      description: Error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+    error_400:
+      description: Bad Request - You have provided an invalid request parameter or the payload does not match the expected format. See error message for details.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+    error_401:
+      description: Unauthorized - No valid access token (JWT) has been provided or it has expired.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+    error_403:
+      description: Forbidden - You do not have the necessary authorization to perform this action or access the requested resource.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+    error_404:
+      description: Not found - The requested resource does not exist.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+    error_409:
+      description: Conflict - Could not import the data due to a conflict with the existing data. See error message for details.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: OAuth client credentials (client ID and secret) are required. These can be requested from SAP BTP cloud cockpit.
+      flows:
+        clientCredentials:
+          tokenUrl: https://{subdomain(identity_zone)}.authentication.{domain}/oauth/token?grant_type=client_credentials
+          scopes: {}
+    apiKey: {type: apiKey, in: header, name: X-API-KEY}
+x-sap-shortText: Manage content of Integration Assessment
+externalDocs: {description: 'SAP Help Portal: SAP Integration Suite – Integration Assessment APIs', url: 'https://help.sap.com/docs/integration-suite/sap-integration-suite/integration-assessment-apis'}
+x-sap-api-type: ODATA
+security:
+- OAuth2: []
+- apiKey: []

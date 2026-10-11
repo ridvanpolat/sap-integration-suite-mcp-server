@@ -1,0 +1,622 @@
+openapi: 3.0.3
+info: {title: Messaging, description: 'Use a REST client tool to leverage the supported REST APIs to publish and consume messages. Hypertext Transfer Protocol (HTTP) is a fundamental protocol of the Internet, enabling the transfer of data between a client and a server. Event Mesh supports the use of HTTP for messaging between applications. You must first authenticate your applications to be able to publish and consume messages. <br><br>The quality of service defines how a system guarantees the message delivery from a sender to a receiver. The APIs for consuming messages require a mandatory header x-qos that supports the values 0 and 1. For more information about how QoS works, see [Publish and Consume Events | SAP Help Portal](https://help.sap.com/docs/integration-suite/sap-integration-suite/publish-and-consume-events).', version: 1.2.0}
+servers:
+- url: https://{subdomain}-{space}.{region}.a.eventmesh.integration.cloud.sap:1443
+  description: Event Mesh in SAP Integration Suite REST Endpoint
+  variables:
+    subdomain: {default: subdomain, description: Subdomain of the Event Mesh in SAP Integration Suite}
+    space: {default: space, description: Space of the Event Mesh in SAP Integration Suite}
+    region:
+      default: us31
+      description: Landscape Region
+      enum: [eu30, ca10, us30, us20, eu11, ap10, ap12, us10, in30, jp10, jp20, sa30, ap11, eu20, ch20, il30, br10, eu10, us21, br20, ap21, ap20]
+externalDocs: {description: SAP Event Mesh in Integration Suite Documentation, url: 'https://help.sap.com/docs/integration-suite/sap-integration-suite/publish-and-consume-events'}
+x-sap-shortText: Publish and consume messages or events using queues and topics
+tags:
+- {name: Synchronous Messaging, description: Publish consume messages synchronously}
+paths:
+  /messagingrest/v1/messages:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Publish message to a queue or topic based on the x-address header value.
+      description: Message is published to the queue or topic name provided in header.
+      parameters:
+      - name: x-address
+        in: header
+        description: Queue or topic address, detail of the queue needs to be specified as 'queue://'or 'queue:' and topic as 'topic://' or 'topic:'. Example values 'queue:default/app/1/my-queue', 'queue://default/app/1/my-queue' , 'topic:default/app/1/mytopic', 'topic://default/app/1/mytopic'
+        required: true
+        schema: {type: string}
+      - name: x-qos
+        in: header
+        description: "Quality of service, where 0 specifies \"at most once\". \nIn case of QoS 1, API will return 204 only if message is successfully published to the queue or topic. \nIn case of QoS 0, API will return 204 as soon as message is accepted by the service."
+        required: true
+        schema:
+          type: integer
+          enum: [0]
+      - name: Content-Type
+        in: header
+        description: Specifies message content type
+        required: true
+        schema: {type: string}
+      - name: x-message-expiration
+        in: header
+        description: Message TTL in milliseconds
+        schema: {type: integer, default: 604800000}
+      - name: x-correlation-id
+        in: header
+        description: Correlation ID can be set to each message while publishing which will be visible in Queue Browser
+        schema: {type: string}
+      - name: x-application-message-id
+        in: header
+        description: Message ID can be set to each message while publishing which will be visible in Queue Browser. Value needs to be prepend with 'ID:', Example value 'ID:81e0fc54-bacf-419d-af79-876bf2ca6582'
+        schema: {type: string}
+      - name: x-timestamp
+        in: header
+        description: Unix timestamp can be set to each message while publishing which will be visible in Queue Browser. Example value '1762953197' for '12 November 2025 13:13:17 GMT'
+        schema: {type: integer}
+      requestBody:
+        content:
+          any-content-type:
+            schema: {type: string, format: binary}
+            examples:
+              text-message: {$ref: '#/components/examples/text-message'}
+        required: true
+      responses:
+        '204': {description: Message published successfully.}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message is empty
+                  value:
+                    error: {code: INVALID_INPUT, message: message is null or empty}
+                    message: message is null or empty
+                invalid_x-qos:
+                  summary: x-qos is invalid
+                  value:
+                    error: {code: INVALID_INPUT, message: x-qos value is invalid}
+                    message: x-qos value is invalid
+                text-message: {summary: A text message, value: A sample message}
+                invalid_queue_topic_name:
+                  summary: Invalid queue or topic name
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid queue or topic name}
+                    message: invalid queue or topic name
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+        '404':
+          description: If queue does not exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Queue not found
+                  value:
+                    error: {code: NOT_FOUND, message: Queue with given name not found}
+                    message: Queue with given name not found
+        '413':
+          description: Message size exceeds allowed size
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message too large
+                  value:
+                    error: {code: PAYLOAD_TOO_LARGE, message: Request body is too large}
+                    message: Request body is too large
+        '422':
+          description: If limit on resources reached.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Resource limit reached
+                  value:
+                    error: {code: UNPROCESSABLE_ENTITY, message: string}
+                    message: string
+        '429':
+          description: If too many polling requests are received by service.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Too many requests
+                  value:
+                    error: {code: TOO_MANY_REQUESTS, message: string}
+                    message: string
+  /messagingrest/v1/queues/{queue-name}/messages:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Publish message to queue
+      description: Message is published to the queue provided in the path. The queue name should be URL encoded.
+      parameters:
+      - name: x-qos
+        in: header
+        description: Quality of service, where 0 specifies "at most once".
+        required: true
+        schema:
+          type: integer
+          enum: [0]
+      - name: Content-Type
+        in: header
+        description: Specifies message content type
+        required: true
+        schema: {type: string}
+      - name: x-message-expiration
+        in: header
+        description: Message TTL in milliseconds
+        schema: {type: integer, default: 604800000}
+      - name: queue-name
+        in: path
+        description: URL-encoded queue name
+        required: true
+        schema: {type: string}
+      - name: x-correlation-id
+        in: header
+        description: Correlation ID can be set to each message while publishing which will be visible in Queue Browser
+        schema: {type: string}
+      - name: x-application-message-id
+        in: header
+        description: Message ID can be set to each message while publishing which will be visible in Queue Browser. Value needs to be prepend with 'ID:', Example value 'ID:81e0fc54-bacf-419d-af79-876bf2ca6582'
+        schema: {type: string}
+      - name: x-timestamp
+        in: header
+        description: Unix timestamp can be set to each message while publishing which will be visible in Queue Browser. Example value '1762953197' for '12 November 2025 13:13:17 GMT'
+        schema: {type: integer}
+      requestBody:
+        content:
+          any-content-type:
+            schema: {type: string, format: binary}
+            examples:
+              text-message: {$ref: '#/components/examples/text-message'}
+        required: true
+      responses:
+        '204': {description: Message published successfully}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message is empty
+                  value:
+                    error: {code: INVALID_INPUT, message: message is null or empty}
+                    message: message is null or empty
+                invalid_x-qos:
+                  summary: x-qos is invalid
+                  value:
+                    error: {code: INVALID_INPUT, message: x-qos value is invalid}
+                    message: x-qos value is invalid
+                invalid_queue_name:
+                  summary: Invalid queue name
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid queue name}
+                    message: invalid queue name
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+        '404':
+          description: If queue does not exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Queue not found
+                  value:
+                    error: {code: NOT_FOUND, message: Queue with given name not found}
+                    message: Queue with given name not found
+        '413':
+          description: Message size exceeds allowed size
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message too large
+                  value:
+                    error: {code: PAYLOAD_TOO_LARGE, message: Request body is too large}
+                    message: Request body is too large
+        '422':
+          description: If limit on resources reached.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Resource limit reached
+                  value:
+                    error: {code: UNPROCESSABLE_ENTITY, message: string}
+                    message: string
+        '429':
+          description: If too many polling requests are received by service.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Too many requests
+                  value:
+                    error: {code: TOO_MANY_REQUESTS, message: string}
+                    message: string
+  /messagingrest/v1/topics/{topic-name}/messages:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Publish message to topic
+      description: Message is published to the topic provided in the path. The topic name should be URL encoded.
+      parameters:
+      - name: x-qos
+        in: header
+        description: Quality of service, where 0 specifies "at most once"
+        required: true
+        schema:
+          type: integer
+          enum: [0]
+      - name: Content-Type
+        in: header
+        description: Specifies message content type
+        required: true
+        schema: {type: string}
+      - name: x-message-expiration
+        in: header
+        description: Message TTL in milliseconds
+        schema: {type: integer, default: 604800000}
+      - name: topic-name
+        in: path
+        description: URL-encoded topic name
+        required: true
+        schema: {type: string}
+      - name: x-correlation-id
+        in: header
+        description: Correlation ID can be set to each message while publishing which will be visible in Queue Browser
+        schema: {type: string}
+      - name: x-application-message-id
+        in: header
+        description: Message ID can be set to each message while publishing which will be visible in Queue Browser. Value needs to be prepend with 'ID:', Example value 'ID:81e0fc54-bacf-419d-af79-876bf2ca6582'
+        schema: {type: string}
+      - name: x-timestamp
+        in: header
+        description: Unix timestamp can be set to each message while publishing which will be visible in Queue Browser. Example value '1762953197' for '12 November 2025 13:13:17 GMT'
+        schema: {type: integer}
+      requestBody:
+        content:
+          any-content-type:
+            schema: {type: string, format: binary}
+            examples:
+              text-message: {$ref: '#/components/examples/text-message'}
+        required: true
+      responses:
+        '204': {description: Message published successfully}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message is empty
+                  value:
+                    error: {code: INVALID_INPUT, message: message is null or empty}
+                    message: message is null or empty
+                invalid_x-qos:
+                  summary: x-qos is invalid
+                  value:
+                    error: {code: INVALID_INPUT, message: x-qos value is invalid}
+                    message: x-qos value is invalid
+                invalid_topic_name:
+                  summary: Invalid topic name
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid topic name}
+                    message: invalid topic name
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+        '413':
+          description: Message size exceeds allowed size
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Message too large
+                  value:
+                    error: {code: PAYLOAD_TOO_LARGE, message: Request body is too large}
+                    message: Request body is too large
+        '422':
+          description: If limit on resources reached.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Resource limit reached
+                  value:
+                    error: {code: UNPROCESSABLE_ENTITY, message: string}
+                    message: string
+        '429':
+          description: If too many polling requests are received by service.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Too many requests
+                  value:
+                    error: {code: TOO_MANY_REQUESTS, message: string}
+                    message: string
+  /messagingrest/v1/messages/consumption:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Consume message from a queue based on the x-address header value.
+      description: Message is consumed from the queue provided in header. When number of messages in queue are less than 3 the API might result with no messages at times, in this case its recommend to poll again. Recommended to use this API only for testing.
+      parameters:
+      - name: x-address
+        in: header
+        description: Queue address, detail of the queue needs to be specified as 'queue://'or 'queue:'. Example values 'queue:default/app/1/my-queue', 'queue://default/app/1/my-queue'
+        required: true
+        schema: {type: string}
+      - name: x-qos
+        in: header
+        description: Quality of service, where 0 specifies "at most once", and 1 specifies "at least once" (requires acknowledgment).
+        required: true
+        schema:
+          type: integer
+          enum: [0, 1]
+      responses:
+        '200':
+          description: Message in response body.
+          content:
+            any-content-type: {example: string}
+          headers:
+            Content-Type:
+              schema: {type: string}
+              description: Content type of the message.
+            X-Message-Id:
+              schema: {type: string}
+              description: 'A unique identifier for the message, required when acknowledging messages which consumed with x-qos: 1. Ensure this ID is included in the Acknowledgement API to acknowledge message. Omission may result in message redelivery'
+        '204': {description: If queue is empty.}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                invalid_x-qos:
+                  summary: x-qos is invalid
+                  value:
+                    error: {code: INVALID_INPUT, message: x-qos value is invalid}
+                    message: x-qos value is invalid
+                invalid_queue_name:
+                  summary: Invalid queue name
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid queue name}
+                    message: invalid queue name
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+        '404':
+          description: If queue does not exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Queue not found
+                  value:
+                    error: {code: '400', message: 'Queue name: ''<queue-name>'' not found'}
+                    message: 'Queue name: ''<queue-name>'' not found'
+        '422':
+          description: If limit on resources reached.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Resource limit reached
+                  value:
+                    error: {code: UNPROCESSABLE_ENTITY, message: string}
+                    message: string
+        '429':
+          description: If too many polling requests are received by service.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Too many requests
+                  value:
+                    error: {code: TOO_MANY_REQUESTS, message: string}
+                    message: string
+  /messagingrest/v1/queues/{queue-name}/messages/consumption:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Consume message from a queue
+      description: Polls for messages in the queue. Queue name should be URL encoded. When number of messages in queue are less than 3 the API might result with no messages at times, in this case its recommend to poll again. Recommended to use this API only for testing.
+      parameters:
+      - name: x-qos
+        in: header
+        description: Quality of service, where 0 specifies "at most once", and 1 specifies "at least once" (requires acknowledgment).
+        required: true
+        schema:
+          type: integer
+          enum: [0, 1]
+      - name: queue-name
+        in: path
+        description: URL-encoded queue name
+        required: true
+        schema: {type: string}
+      responses:
+        '200':
+          description: Message in response body.
+          content:
+            any-content-type: {example: string}
+          headers:
+            Content-Type:
+              schema: {type: string}
+              description: Content type of the message.
+            X-Message-Id:
+              schema: {type: string}
+              description: Message id that must be passed in acknowledgement API. Available only if its consumed with x-qos 1
+        '204': {description: If queue is empty.}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                invalid_x-qos:
+                  summary: x-qos is invalid
+                  value:
+                    error: {code: INVALID_INPUT, message: x-qos value is invalid}
+                    message: x-qos value is invalid
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+        '404':
+          description: If queue does not exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Queue not found
+                  value:
+                    error: {code: '400', message: 'Queue name: ''<queue-name>'' not found'}
+                    message: 'Queue name: ''<queue-name>'' not found'
+        '422':
+          description: If limit on resources reached.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Resource limit reached
+                  value:
+                    error: {code: UNPROCESSABLE_ENTITY, message: string}
+                    message: string
+        '429':
+          description: If too many polling requests are received by service.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Too many requests
+                  value:
+                    error: {code: TOO_MANY_REQUESTS, message: string}
+                    message: string
+  /messagingrest/v1/queues/{queue-name}/messages/{message-id}/acknowledgement:
+    post:
+      tags: [Synchronous Messaging]
+      summary: Acknowledge message consumption
+      description: This API should be used to acknowledge the messages consumed using x-qos 1
+      parameters:
+      - name: queue-name
+        in: path
+        description: URL-encoded queue name
+        required: true
+        schema: {type: string}
+      - name: message-id
+        in: path
+        description: Message id as received in X-Message-Id header of message consumption API
+        required: true
+        schema: {type: string}
+      responses:
+        '202': {description: Request for acknowledging message is accepted}
+        '400':
+          description: In cases of invalid values for request parameters
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                invalid_queue-name:
+                  summary: invalid queue name
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid queue name}
+                    message: invalid queue name
+                invalid_message-id:
+                  summary: invalid message id
+                  value:
+                    error: {code: INVALID_INPUT, message: invalid message-id}
+                    message: invalid message-id
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponseObject'}
+              examples:
+                empty_message:
+                  summary: Invalid credentials
+                  value:
+                    error: {code: UNAUTHORIZED, message: Unauthorized}
+                    message: Unauthorized
+components:
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: This API uses OAuth 2 with client credentials flow
+      flows:
+        clientCredentials:
+          tokenUrl: https://{subdomain(identity_zone)}.authentication.{host}/oauth/token
+          scopes: {}
+  schemas:
+    ErrorResponseObject:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: {type: string}
+            message: {type: string}
+        message: {type: string}
+  examples:
+    text-message: {value: A sample message}

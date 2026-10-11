@@ -1,0 +1,1873 @@
+openapi: 3.0.3
+info:
+  title: Event Mesh Queue and Webhook Management API
+  version: '1.0'
+  description: This API provides management capabilities for Event Mesh queues, webhook subscriptions, and webhook credentials. Use these endpoints to create, update, delete, and manage queues, subscribe queues to topics, configure webhook subscriptions for message delivery, and manage authentication credentials for webhooks.
+  x-sap-api-type: REST
+  x-logo: {url: ''}
+x-sap-shortText: Manage Event Mesh queues, webhook subscriptions, and credential management.
+externalDocs: {description: Event Mesh Documentation, url: 'https://help.sap.com/docs/integration-suite/sap-integration-suite/event-mesh'}
+servers:
+- url: https://{hostname}/sap-event-mesh/rest/api/v1
+  description: Event Mesh Management API Endpoint
+  variables:
+    hostname: {default: your-event-mesh-host, description: The hostname for your Event Mesh instance. This can be found in your service key or service binding credentials.}
+tags:
+- {name: Manage Queues, description: Manage Queues of EMIS Instance}
+- {name: Queue Subscriptions to Topics, description: Manage Queue Subscriptions to Topics}
+- {name: Webhook Subscriptions to Queues, description: Manage Webhook Subscriptions to Queues}
+- {name: Webhook Credentials Management, description: Manage Webhook Credentials for secure webhook authentication}
+security:
+- OAuth2: []
+paths:
+  /queues:
+    get:
+      tags: [Manage Queues]
+      summary: Get Queues
+      description: Get settings and information for all queues
+      operationId: getQueues
+      responses:
+        '200':
+          description: 'Ok: Successfully retrieved list of queues'
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Queue'}
+              examples:
+                queues-list: {$ref: '#/components/examples/queues-list'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+      deprecated: false
+  /queues/{queue}:
+    get:
+      tags: [Manage Queues]
+      summary: Get Queue
+      description: Get settings and information for a queue
+      operationId: getQueue
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      responses:
+        '200':
+          description: 'Ok: successfully retrieved the queue'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Queue'}
+              examples:
+                queue-details: {$ref: '#/components/examples/queue-details'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found: if the queue was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-not-found'}
+      deprecated: false
+    put:
+      tags: [Manage Queues]
+      summary: Create / Update Queue
+      description: Creates or updates a queue by the parameters specified in the request body. When this API is called on an existing queue, only parameters in the request body are updated. The queue name (path segment/parameter) must be URL encoded.
+      operationId: putQueue
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      requestBody:
+        description: queueConfig
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/QueueP'}
+            examples:
+              queue-config-basic: {$ref: '#/components/examples/queue-config-basic'}
+              queue-config-advanced: {$ref: '#/components/examples/queue-config-advanced'}
+        required: false
+      responses:
+        '200':
+          description: 'Ok: if the queue was successfully updated'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Queue'}
+              examples:
+                queue-updated: {$ref: '#/components/examples/queue-details'}
+        '201':
+          description: 'Created: if the queue was successfully created'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Queue'}
+              examples:
+                queue-created: {$ref: '#/components/examples/queue-details'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+      deprecated: false
+    delete:
+      tags: [Manage Queues]
+      summary: Delete Queue
+      description: Deletes a queue by the name given in the parameters. The queue name (path segment/parameter) must be URL encoded.
+      operationId: deleteQueue
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      responses:
+        '204': {description: 'No Content: if the queue was successfully deleted'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found: if the queue was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-not-found'}
+      deprecated: false
+  /queues/{queue}/purge:
+    delete:
+      tags: [Manage Queues]
+      summary: Purge Queue
+      description: Clear all messages from a queue
+      operationId: purgeQueue
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      responses:
+        '204': {description: 'No Content: if the queue was successfully purged'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found: if the queue was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-not-found'}
+      deprecated: false
+  /queues/{queue}/subscriptions:
+    get:
+      tags: [Queue Subscriptions to Topics]
+      summary: Get Queue Subscriptions
+      description: Get list of queue subscriptions of a given queue name. The queue name (path segment/parameter) must be URL encoded.
+      operationId: getQueueSubscriptions
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      responses:
+        '200':
+          description: Response with list of queue subscriptions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/QueueSubscription'}
+              examples:
+                queue-subscriptions-list: {$ref: '#/components/examples/queue-subscriptions-list'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found:  if the queue was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-not-found'}
+      deprecated: false
+  /queues/{queue}/subscriptions/{topic}:
+    put:
+      tags: [Queue Subscriptions to Topics]
+      summary: Create / Update Queue Subscriptions
+      description: 'Creates or updates a queue subscription. The queue name and topic pattern (path segment/parameter) must be URL encoded. '
+      operationId: putQueueSubscription
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      - name: topic
+        in: path
+        description: Topic (Subscription) (must be URL encoded). For allowed characters & the pattern to be followed for topic name, please refer to the pattern in schema TopicName.
+        required: true
+        schema: {type: string}
+      responses:
+        '200':
+          description: 'Ok: if the queue subscription was successfully updated'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/QueueSubscription'}
+              examples:
+                queue-subscription-updated: {$ref: '#/components/examples/queue-subscription-details'}
+        '201':
+          description: 'Created: if the queue subscription was successfully created'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/QueueSubscription'}
+              examples:
+                queue-subscription-created: {$ref: '#/components/examples/queue-subscription-details'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found: if the queue was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-not-found'}
+      deprecated: false
+    delete:
+      tags: [Queue Subscriptions to Topics]
+      summary: Delete Queue Subscription
+      description: 'Deletes given queue subscription. The queue name and topic pattern (path segment/parameter) must be URL encoded. '
+      operationId: deleteQueueSubscription
+      parameters:
+      - name: queue
+        in: path
+        description: Name of the queue (must be URL encoded). For allowed characters & the pattern to be followed for queue name, please refer to the pattern in schema QueueName.
+        required: true
+        schema: {type: string}
+      - name: topic
+        in: path
+        description: Topic (Subscription) (must be URL encoded). For allowed characters & the pattern to be followed for topic name, please refer to the pattern in schema TopicName.
+        required: true
+        schema: {type: string}
+      responses:
+        '204': {description: 'No Content: if the queue subscription was successfully deleted'}
+        '400':
+          description: 'Bad Request: if the given parameters have invalid values'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                bad-request: {$ref: '#/components/examples/queue-error-bad-request'}
+        '401':
+          description: 'Unauthorized: if the authorization failed'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/queue-error-unauthorized'}
+        '403':
+          description: 'Forbidden: if the provided authentication credentials were insufficient'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                forbidden: {$ref: '#/components/examples/queue-error-forbidden'}
+        '404':
+          description: 'Not Found: if the queue or queue subscription was not found'
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/error'}
+              examples:
+                not-found: {$ref: '#/components/examples/queue-subscription-not-found'}
+      deprecated: false
+  /subscriptions:
+    post:
+      summary: Create subscription
+      description: Creates a webhook subscription on specified queue. Messages published to the queue are delivered to the webhook.
+      operationId: createWebhookSubscription
+      tags: [Webhook Subscriptions to Queues]
+      requestBody:
+        description: Subscription details.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/webhookSubscription'}
+            examples:
+              subscription-no-auth: {$ref: '#/components/examples/webhook-subscription-no-auth'}
+              subscription-basic-auth: {$ref: '#/components/examples/webhook-subscription-basic-auth'}
+              subscription-oauth2-cc: {$ref: '#/components/examples/webhook-subscription-oauth2-cc'}
+              subscription-oauth2-cc-scopes: {$ref: '#/components/examples/webhook-subscription-oauth2-cc-scopes'}
+              subscription-oauth2-x509: {$ref: '#/components/examples/webhook-subscription-oauth2-x509'}
+              subscription-oauth2-x509-scopes: {$ref: '#/components/examples/webhook-subscription-oauth2-x509-scopes'}
+              subscription-x509-auth: {$ref: '#/components/examples/webhook-subscription-x509-auth'}
+              subscription-api-key-auth-header: {$ref: '#/components/examples/webhook-subscription-api-key-auth-header'}
+              subscription-api-key-auth-query: {$ref: '#/components/examples/webhook-subscription-api-key-auth-query'}
+              subscription-refer-credential-name: {$ref: '#/components/examples/webhook-subscription-refer-credential-name'}
+      parameters:
+      - in: header
+        name: Content-Type
+        description: Content type
+        schema:
+          type: string
+          enum: [application/json]
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhookSubscriptionCreated'}
+              examples:
+                subscription-created: {$ref: '#/components/examples/webhook-subscription-created'}
+        '400':
+          description: For invalid payload
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                bad-subscription-name: {$ref: '#/components/examples/bad-webhook-subscription-name'}
+                bad-request: {$ref: '#/components/examples/webhook-bad-request'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '409':
+          description: For duplicate subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                duplicate-subscription: {$ref: '#/components/examples/duplicate-webhook-subscription'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                internal-error: {$ref: '#/components/examples/webhook-internal-error'}
+    get:
+      summary: Get all subscriptions
+      description: Returns list of all webhook subscriptions and their properties.
+      operationId: getWebhookSubscriptions
+      tags: [Webhook Subscriptions to Queues]
+      parameters:
+      - in: query
+        name: queue-name
+        schema:
+          type: string
+          example: {value: queue-name}
+        required: false
+        description: Filter subscriptions on queue name
+      responses:
+        '200':
+          description: List of all subscriptions, or an empty array if none exists. Credentials are omitted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhookSubscriptionsList'}
+              examples:
+                webhook-subscriptions-list: {$ref: '#/components/examples/webhook-subscriptions-list'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                internal-error: {$ref: '#/components/examples/webhook-internal-error'}
+  /subscriptions/{subscription-name}:
+    parameters:
+    - name: subscription-name
+      in: path
+      description: Subscription name
+      schema: {type: string, pattern: '^[a-zA-Z0-9/._-]{1,50}$'}
+      required: true
+    get:
+      summary: Get subscription by name
+      description: Returns a webhook subscriptions and properties by name.
+      operationId: getWebhookSubscription
+      tags: [Webhook Subscriptions to Queues]
+      responses:
+        '200':
+          description: Subscription details. Credentials are omitted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhookSubscriptionInfo'}
+              examples:
+                subscriptionInfo: {$ref: '#/components/examples/webhook-subscriptionInfo'}
+                subscriptionInfoCredentialRef: {$ref: '#/components/examples/webhook-subscriptionInfoCredentialRef'}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                subscription-not-found: {$ref: '#/components/examples/webhook-subscription-not-found'}
+    delete:
+      summary: Delete subscription by name
+      description: Deletes a webhook subscription by name.
+      operationId: deleteWebhookSubscription
+      tags: [Webhook Subscriptions to Queues]
+      responses:
+        '204': {description: Subscription deleted successfully}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                subscription-not-found: {$ref: '#/components/examples/webhook-subscription-not-found'}
+    patch:
+      summary: Update subscription's security schema
+      description: Updates given webhook's security schema. This operation is allowed only when webhook is paused. Also allowed only when previous update operation is completed.
+      operationId: updateWebhookSubscriptionSecuritySchema
+      tags: [Webhook Subscriptions to Queues]
+      requestBody:
+        description: Updates security schema of the given webhook.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/securitySchema'}
+            examples:
+              security-schema-basicAuth: {$ref: '#/components/examples/securitySchema-basicAuth'}
+              security-schema-oauth2WithClientSecret: {$ref: '#/components/examples/securitySchema-oauth2ClientSecret'}
+              security-schema-refer-credentials: {$ref: '#/components/examples/securitySchema-refer-credentials'}
+      responses:
+        '200': {description: Successfully updated webhook}
+        '400':
+          description: If given input is not correct or name is not valid
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                bad-input: {$ref: '#/components/examples/webhook-bad-request'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: If given webhook not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                subscription-not-found: {$ref: '#/components/examples/webhook-subscription-not-found'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                internal-error: {$ref: '#/components/examples/webhook-internal-error'}
+  /subscriptions/{subscription-name}/handshake:
+    parameters:
+    - name: subscription-name
+      in: path
+      description: Subscription name
+      schema: {type: string, pattern: '^[a-zA-Z0-9/._-]{1,50}$'}
+      required: true
+    post:
+      summary: Trigger a handshake request to subscription's webhook endpoint
+      description: This API is useful in case handshake request at webhook creation time failed. Note this can change the state of webhook subscription depending on the response to the latest handshake request to webhook.
+      operationId: triggerWebhookHandshake
+      tags: [Webhook Subscriptions to Queues]
+      responses:
+        '200': {description: Handshake OK}
+        '204': {description: Handshake triggered}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                bad-request: {$ref: '#/components/examples/webhook-bad-request'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                subscription-not-found: {$ref: '#/components/examples/webhook-subscription-not-found'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                internal-error: {$ref: '#/components/examples/webhook-internal-error'}
+  /subscriptions/{subscription-name}/state:
+    parameters:
+    - name: subscription-name
+      in: path
+      description: Subscription name
+      schema: {type: string, pattern: '^[a-zA-Z0-9/._-]{1,50}$'}
+      required: true
+    put:
+      summary: PUT webhook state
+      description: Pause or Resume a webhook
+      operationId: putWebhookState
+      tags: [Webhook Subscriptions to Queues]
+      requestBody:
+        description: webhook state
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [resume, pause]
+              required: [action]
+      responses:
+        '202': {description: Accepted webhook state change}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                bad-request: {$ref: '#/components/examples/webhook-bad-request'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                subscription-not-found: {$ref: '#/components/examples/webhook-subscription-not-found'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponseWebhook'}
+              examples:
+                internal-error: {$ref: '#/components/examples/webhook-internal-error'}
+  /webhook-credentials:
+    post:
+      summary: Upload webhook credentials.
+      description: Stores the credentials in the service. The uploaded credentials can be used in security schema of one or more webhooks, by referring to credentials name. Certificates & keys must be provided in PEM format with \n for newline character.
+      operationId: uploadWebhookCredentials
+      tags: [Webhook Credentials Management]
+      requestBody:
+        description: Credential that can be used for webhooks.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/webhookCredentials'}
+            examples:
+              credentials-basic-auth: {$ref: '#/components/examples/webhook-credentials-basic-auth'}
+              credentials-oauth2: {$ref: '#/components/examples/webhook-credentials-oauth2'}
+              credentials-oauth2-x509-auth: {$ref: '#/components/examples/webhook-credentials-oauth2-x509'}
+              credentials-x509Auth: {$ref: '#/components/examples/webhook-credentials-x509-auth'}
+              credentials-api-key-auth-in-header: {$ref: '#/components/examples/webhook-credentials-api-key-auth-in-header'}
+              credentials-api-key-auth-in-query: {$ref: '#/components/examples/webhook-credentials-api-key-auth-in-query'}
+      responses:
+        '201': {description: Successfully uploaded credentials}
+        '400':
+          description: For invalid credentials, like missing required property or invalid value for a property
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidInput: {$ref: '#/components/examples/invalidInput'}
+                bad-request: {$ref: '#/components/examples/credential-bad-request'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '409':
+          description: If the credentials with given name already exist.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                conflict: {$ref: '#/components/examples/conflict'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+    get:
+      summary: Get all uploaded webhook credentials.
+      description: Gets list of all webhook credentials. Passwords, secrets, keys are not provided in the response.
+      operationId: getWebhookCredentials
+      tags: [Webhook Credentials Management]
+      responses:
+        '200':
+          description: List of all credentials, or results will be empty array if none exists. Passwords, secrets, keys are omitted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhookCredentialsList'}
+              examples:
+                webhookCredentialsList: {$ref: '#/components/examples/webhookCredentialsList'}
+                webhookCredentialsEmptyList: {$ref: '#/components/examples/webhookCredentialsEmptyList'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+  /webhook-credentials/{credential-name}:
+    parameters:
+    - name: credential-name
+      in: path
+      schema: {type: string, pattern: '^[a-zA-Z0-9._-]{1,100}$'}
+      required: true
+      description: Name of the credentials that was previously uploaded to service.
+    get:
+      summary: Get webhook credentials by name.
+      description: Gets the credentials by name. Passwords, secrets, api key values are not provided in the response.
+      operationId: getWebhookCredential
+      tags: [Webhook Credentials Management]
+      responses:
+        '200':
+          description: Details of credential with the given name if exists. Passwords, secrets, API key values are omitted in response.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhookCredentialsInfo'}
+              examples:
+                credentials-info-basic: {$ref: '#/components/examples/webhook-credentials-info-basic'}
+                credentials-info-oauth2: {$ref: '#/components/examples/webhook-credentials-info-oauth2'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '404':
+          description: In case of credential with given name not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                notfound: {$ref: '#/components/examples/notfound'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+    put:
+      summary: Update credentials by name.
+      description: Updates the credentials by name in the service. The credentials are updated immediately. The webhooks that use given credentials are paused and resumed. To check which webhooks are using given credentials & status of webhook do GET on the credentials status API.
+      operationId: updateWebhookCredential
+      tags: [Webhook Credentials Management]
+      requestBody:
+        description: Updates security schema of the credentials.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/securitySchema'}
+            examples:
+              credentials-basicAuth: {$ref: '#/components/examples/securitySchema-basicAuth'}
+              credentials-oauth2: {$ref: '#/components/examples/securitySchema-oauth2'}
+              credentials-oauth2-x509: {$ref: '#/components/examples/securitySchema-oauth2-x509'}
+              credentials-auth: {$ref: '#/components/examples/securitySchema-x509-auth'}
+              credentials-api-key-auth-in-header: {$ref: '#/components/examples/securitySchema-api-key-auth-in-header'}
+              credentials-api-key-auth-in-query: {$ref: '#/components/examples/securitySchema-api-key-auth-in-query'}
+      responses:
+        '202':
+          description: On successful update of credentials. To know impacted webhooks check the 'Location' header in response.
+          headers:
+            Location:
+              schema: {type: string, format: uri}
+              description: To get status of webhooks that use updated credentials.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/credentials-update-response'}
+              examples:
+                update-response: {$ref: '#/components/examples/credentials-update-response'}
+        '400':
+          description: If given input not correct.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalid-input: {$ref: '#/components/examples/invalidInput'}
+                bad-request: {$ref: '#/components/examples/credential-bad-request'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '404':
+          description: In case of credential with given name not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                notfound: {$ref: '#/components/examples/notfound'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+    delete:
+      summary: Delete credentials.
+      description: Deletes the credentials in the service. Deletion is possible only if no webhook is using this credentials.
+      operationId: deleteWebhookCredential
+      tags: [Webhook Credentials Management]
+      responses:
+        '204': {description: Deleted given credential.}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                bad-request: {$ref: '#/components/examples/credential-bad-request'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '404':
+          description: In case of credential with given name not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                notfound: {$ref: '#/components/examples/notfound'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+  /webhook-credentials/{credential-name}/status:
+    parameters:
+    - name: credential-name
+      in: path
+      schema: {type: string, pattern: '^[a-zA-Z0-9._-]{1,100}$'}
+      required: true
+      description: Name of the credentials that was previously uploaded to service.
+    get:
+      summary: Get list and status of all webhooks that use given credential name.
+      description: Gets status of all webhooks that use the given credential name. The response contains active/paused state of webhook and if the webhook is running with the latest update of credentials or not.
+      operationId: getWebhookCredentialStatus
+      tags: [Webhook Credentials Management]
+      responses:
+        '200':
+          description: List of all webhook subscriptions & status that use the given credential name.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/webhooksStatusList'}
+              examples:
+                webhook-status-list: {$ref: '#/components/examples/webhook-credentials-status-list'}
+        '401':
+          description: In case of auth failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                unauthorized: {$ref: '#/components/examples/unauthorized'}
+        '404':
+          description: In case of credential with given name not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                notfound: {$ref: '#/components/examples/notfound'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                internal-error: {$ref: '#/components/examples/credential-internal-error'}
+components:
+  schemas:
+    Queue:
+      title: Queue
+      required: [name]
+      type: object
+      properties:
+        accessType:
+          type: string
+          description: |-
+            A queue has an access type, which determines how messages are delivered when multiple consumer flows are bound to it. Queues can be assigned one of the following access types
+            EXCLUSIVE: Only one consumer can receive a message at any one time, while additional consumers may be connected as standby. That is, only one flow can be active. Only the first consumer to bind can receive messages. If the first consumer disconnects, the second consumer receives data, and so on. An exclusive queue always delivers messages in the order they are received.
+            NON_EXCLUSIVE: Multiple consumers can bind to a non-exclusive queue. Each consumer is serviced in round-robin fashion. This provides load-balancing; however, if a connection fails, then unacknowledged messages are delivered to another consumer with the re-delivered flag set. In this way, messages can be delivered to consumers out of order.
+            The access type can be changed for a durable queue, but only when client access to the queue has been disabled.
+            The default value is: NON_EXCLUSIVE.
+          example: EXCLUSIVE
+          enum: [EXCLUSIVE, NON_EXCLUSIVE]
+        maxDeliveredUnackedMsgsPerFlow: {type: integer, description: 'Maximum number of unacknowledged messages allowed in the queue. The default value is: 10000.', format: int64}
+        maxMessageSizeInBytes: {type: integer, description: 'Maximum message size allowed in the queue (in bytes). The default value is: 10000000.', format: int64}
+        maxQueueSizeInBytes:
+          type: integer
+          description: |-
+            Maximum allowed queue size (in bytes).
+            The default value is: 1572864000 in (binary) which equates to  1500 megabytes.
+            The value will always be rounded(ceiling) to a multiple of 1048576.
+            1048576 equates to 1 megabyte.
+          format: int64
+        maxRedeliveryCount: {type: integer, description: 'This property is applicable only when AMQP 1.0 is used. When messages are consumed with AMQP 1.0 protocol, client can reject a message delivered from queue. In such case the message is redelivered to the client. This property determines maximum number of times the queue attempts redelivery of a message. After maximum redelivery count is reached, the message is moved to the queue that is set as dead message queue for this queue. If dead message queue is not specified, the message is discarded after maximum redelivery count is reached. See property deadMessageQueue for how to specify dead message queue.', format: int64, minimum: 0, maximum: 255, default: 0}
+        maxTtl: {type: integer, description: 'Maximum time in seconds a message can stay in the queue when respectTtl option enabled for queue. A message expires when the lesser of the sender assigned time-to-live (TTL) in the message and the maxTtl configured for the queue is exceeded. The expired message is moved the queue that is set as dead message queue for this queue. If dead message queue is not specified, the message is discarded after expiry. See property deadMsgQueue for how to specify dead message queue. A value of 0 for this property disables expiry.', format: int64, default: 0}
+        deadMsgQueue: {type: string, description: A queue can be created or updated with dead message queue using this property.  Value of deadMsgQueue is name of another queue. Expired messages or messages that reach maximum redelivery count are moved to dead message queue. See properties maxRedeliveryCount and maxTtl for details.}
+        name: {type: string, description: Name of the queue., pattern: '^(?=^.{1,164}$)[a-zA-Z0-9-_./]+$', example: samplequeue}
+        messageCount: {type: integer, description: Current number of messages residing in the queue., format: int64}
+        queueSizeInBytes: {type: integer, description: Total size of messages in the queue (in bytes)., format: int64}
+        unacknowledgedMessageCount: {type: integer, description: Total count of unacknowledged messages in the queue., format: int64}
+    QueueP:
+      title: QueueP
+      type: object
+      properties:
+        accessType:
+          type: string
+          description: |-
+            A queue has an access type, which determines how messages are delivered when multiple consumer flows are bound to it. Queues can be assigned one of the following access types
+            EXCLUSIVE: Only one consumer can receive a message at any one time, while additional consumers may be connected as standby. That is, only one flow can be active. Only the first consumer to bind can receive messages. If the first consumer disconnects, the second consumer receives data, and so on. An exclusive queue always delivers messages in the order they are received.
+            NON_EXCLUSIVE: Multiple consumers can bind to a non-exclusive queue. Each consumer is serviced in round-robin fashion. This provides load-balancing; however, if a connection fails, then unacknowledged messages are delivered to another consumer with the re-delivered flag set. In this way, messages can be delivered to consumers out of order.
+            The access type can be changed for a durable queue, but only when client access to the queue has been disabled.
+            The default value is: NON_EXCLUSIVE.
+          example: EXCLUSIVE
+          enum: [EXCLUSIVE, NON_EXCLUSIVE]
+          default: NON_EXCLUSIVE
+        maxDeliveredUnackedMsgsPerFlow: {type: integer, description: 'Maximum number of unacknowledged messages allowed in the queue. The default value is: 10000.', format: int64, minimum: 1, maximum: 1000000, default: 10000}
+        maxMessageSizeInBytes: {type: integer, description: 'Maximum message size allowed in the queue (in bytes). The default value is: 10000000.', format: int64, minimum: 1, maximum: 30000000, default: 10000000}
+        maxQueueSizeInBytes:
+          type: integer
+          description: "Maximum allowed queue size (in bytes).\nThe default value is: 1572864000 in (binary) which equates to 1500 megabytes.\nThe value will always be rounded(ceiling) to a multiple of 1048576.\n1048576 bytes equates to 1 megabyte. \nminimum value is equal to 1 megabyte.\nmaximum value is equal to 6000000 megabytes (with consideration of ceiling result)"
+          format: int64
+          minimum: 1048576
+          maximum: 6291456000000
+          default: 1572864000
+        respectTtl:
+          type: boolean
+          description: "This field does not take effect currently. respectTtl is always enabled now. \nEnable or disable the respecting of the \"time to live\" (TTL). If enabled, then messages contained in the Queue are checked for expiry. If expired, the message is removed from the Queue and discarded. The default value is `true`"
+          default: true
+        maxRedeliveryCount: {type: integer, description: 'This property is applicable only when AMQP 1.0 is used. When messages are consumed with AMQP 1.0 protocol, client can reject a message delivered from queue. In such case the message is redelivered to the client. This property determines maximum number of times the queue attempts redelivery of a message. After maximum redelivery count is reached, the message is moved to the queue that is set as dead message queue for this queue. If dead message queue is not specified, the message is discarded after maximum redelivery count is reached. See property deadMessageQueue for how to specify dead message queue.', format: int64, minimum: 0, maximum: 255, default: 0}
+        maxTtl: {type: integer, description: 'Maximum time in seconds a message can stay in the queue when respectTtl option enabled for queue. A message expires when the lesser of the sender assigned time-to-live (TTL) in the message and the maxTtl configured for the queue is exceeded. The expired message is moved the queue that is set as dead message queue for this queue. If dead message queue is not specified, the message is discarded after expiry. See property deadMsgQueue for how to specify dead message queue.', format: int64, minimum: 1, maximum: 2592000, default: 2592000}
+        deadMsgQueue: {type: string, description: A queue can be created or updated with dead message queue using this property.  Value of deadMsgQueue is name of another queue. Expired messages or messages that reach maximum redelivery count are moved to dead message queue. See properties maxRedeliveryCount and maxTtl for details.}
+        egressDisabled:
+          type: boolean
+          description: "This field does not take effect currently. Egress is always enabled now. \nEnable or disable the transmission of messages from the Queue. The default value is false."
+          default: false
+        ingressDisabled:
+          type: boolean
+          description: "This field does not take effect currently. Ingress is always enabled now. \nEnable or disable the reception of messages to the Queue. The default value is false."
+          default: false
+    QueueSubscription:
+      title: QueueSubscription
+      required: [queueName, topicPattern]
+      type: object
+      properties:
+        topicPattern: {type: string, description: Topic pattern}
+        queueName: {type: string, description: Name of the queue}
+    QueueName: {title: QueueName, type: string, pattern: '^(?=^.{1,164}$)[a-zA-Z0-9-_./]+$'}
+    TopicPattern: {title: TopicPattern, type: string, pattern: '^(?=^.{1,150}$)(?=^(?:[^/]*\/){0,19}[^/]*$)(\*$|(?:[A-Za-z0-9-.]+|\+)(?:/(?:[A-Za-z0-9-.]+|\+))*(?:\/\*)?)$'}
+    webhookSubscription:
+      properties:
+        name: {type: string, pattern: '^[a-zA-Z0-9/._-]{1,50}$'}
+        address: {type: string}
+        qos:
+          type: integer
+          enum: [0, 1]
+        pushConfig: {$ref: '#/components/schemas/pushConfig'}
+        defaultContentType: {type: string}
+      required: [name, address, qos, pushConfig]
+    pushConfig:
+      properties:
+        type:
+          type: string
+          enum: [webhook]
+        endpoint: {type: string}
+        exemptHandshake: {type: boolean}
+        securitySchema:
+          type: object
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuth'}
+          - {$ref: '#/components/schemas/OAuth2'}
+          - {$ref: '#/components/schemas/OAuth2X509'}
+          - {$ref: '#/components/schemas/x509Auth'}
+          - {$ref: '#/components/schemas/apiKeyAuth'}
+          - {$ref: '#/components/schemas/credentialRef'}
+        cloudConnectorLocationId: {type: string}
+        onPremise: {type: boolean}
+      required: [type, endpoint, onPremise]
+    credentialRef:
+      properties:
+        type:
+          type: string
+          enum: [credential-ref]
+        credentialName: {type: string}
+      required: [type, credentialName]
+    basicAuth:
+      properties:
+        type:
+          type: string
+          enum: [basicAuth]
+        user: {type: string}
+        password: {type: string}
+      required: [type, user, password]
+    OAuth2:
+      properties:
+        clientSecret: {type: string}
+      allOf:
+      - {$ref: '#/components/schemas/OAuth2Info'}
+      required: [clientSecret]
+    OAuth2X509:
+      properties:
+        key: {type: string}
+      allOf:
+      - {$ref: '#/components/schemas/OAuth2X509Info'}
+      required: [key]
+    x509Auth:
+      properties:
+        key: {type: string}
+      allOf:
+      - {$ref: '#/components/schemas/x509AuthInfo'}
+      required: [key]
+    apiKeyAuth:
+      properties:
+        apiKeyValue: {type: string}
+      allOf:
+      - {$ref: '#/components/schemas/apiKeyAuthInfo'}
+      required: [apiKeyValue]
+    basicAuthInfo:
+      properties:
+        type:
+          type: string
+          enum: [basicAuth]
+        user: {type: string}
+      required: [type, user]
+    OAuth2BasicInfo:
+      properties:
+        grantType:
+          type: string
+          enum: [client_credentials]
+        clientId: {type: string}
+        tokenUrl: {type: string}
+        scopes:
+          type: array
+          items: {type: string}
+      required: [grantType, tokenUrl, clientId]
+    OAuth2Info:
+      properties:
+        type:
+          type: string
+          enum: [oauth2]
+      allOf:
+      - {$ref: '#/components/schemas/OAuth2BasicInfo'}
+      required: [type]
+    OAuth2X509Info:
+      properties:
+        type:
+          type: string
+          enum: [oauth2-x509]
+        certificate: {type: string}
+      allOf:
+      - {$ref: '#/components/schemas/OAuth2BasicInfo'}
+      required: [type, certificate]
+    x509AuthInfo:
+      properties:
+        type:
+          type: string
+          enum: [x509-auth]
+        certificate: {type: string}
+      required: [type, certificate]
+    apiKeyAuthInfo:
+      properties:
+        type:
+          type: string
+          enum: [api-key-auth]
+        in:
+          type: string
+          enum: [header, query]
+        apiKeyName: {type: string}
+      required: [type, in, apiKeyName]
+    webhookSubscriptionCreated:
+      properties:
+        href: {type: string, format: uri}
+    errorResponseWebhook:
+      properties:
+        error: {$ref: '#/components/schemas/errorWebhook'}
+        message: {type: string}
+    errorWebhook:
+      properties:
+        code: {type: string}
+        message: {type: string}
+    webhookSubscriptionsList:
+      type: array
+      items: {$ref: '#/components/schemas/webhookSubscriptionInfo'}
+    webhookSubscriptionInfo:
+      allOf:
+      - {$ref: '#/components/schemas/webhookSubscriptionResponse'}
+      - type: object
+        properties:
+          serviceInstanceId: {type: string, format: uuid}
+          createdOn: {type: string, format: date-time}
+          lastUpdatedOn: {type: string, format: date-time}
+          handshakeStatus:
+            type: string
+            enum: [Not Initiated, Requested, Completed, Failed, Exempted]
+          subscriptionStatus:
+            type: string
+            enum: [Active, Paused]
+          subscriptionStatusReason: {type: string}
+      required: [serviceInstanceId, createdOn, lastUpdatedOn, handshakeStatus, subscriptionStatus, subscriptionStatusReason]
+    webhookSubscriptionResponse:
+      properties:
+        name: {type: string}
+        address: {type: string}
+        qos:
+          type: integer
+          enum: [0, 1]
+        pushConfig: {$ref: '#/components/schemas/pushConfigResponse'}
+      required: [name, address, qos, pushConfig]
+    pushConfigResponse:
+      properties:
+        type:
+          type: string
+          enum: [webhook]
+        endpoint: {type: string}
+        exemptHandshake: {type: boolean}
+        securitySchema:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [credential-ref]
+            credentialName: {type: string}
+        cloudConnectorLocationId: {type: string}
+        onPremise: {type: boolean}
+      required: [type, endpoint, exemptHandshake, onPremise, cloudConnectorLocationId]
+    webhooksStatusList:
+      properties:
+        credentialLastUpdatedOn: {type: string, format: date-time}
+        subscriptions:
+          type: array
+          description: This can be an empty array if no webhook is using the given credentials.
+          items: {$ref: '#/components/schemas/webhooksStatus'}
+      required: [credentialLastUpdatedOn, subscriptions]
+    webhooksStatus:
+      properties:
+        name: {type: string, description: Name of the webhook subscription.}
+        href: {type: string, format: uri, description: Using this href URI details of webhook can be obtained.}
+        status:
+          type: string
+          enum: [active, paused, inactive]
+      required: [name, href, status]
+    errorResponse:
+      properties:
+        error: {$ref: '#/components/schemas/error'}
+    error:
+      properties:
+        code: {type: string}
+        message: {type: string}
+    webhookCredentials:
+      type: object
+      properties:
+        name: {type: string, pattern: '^[a-zA-Z0-9._-]{1,100}$'}
+        securitySchema:
+          type: object
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuth'}
+          - {$ref: '#/components/schemas/OAuth2'}
+          - {$ref: '#/components/schemas/OAuth2X509'}
+          - {$ref: '#/components/schemas/x509Auth'}
+          - {$ref: '#/components/schemas/apiKeyAuth'}
+    webhookCredentialsList:
+      properties:
+        results:
+          type: array
+          items: {$ref: '#/components/schemas/webhookCredentialsInfo'}
+      required: [results]
+    credentials-update-response:
+      properties:
+        href: {type: string, description: Using the href URI all webhooks that are using the credentials and their status can be retrieved., format: uri}
+      required: [href]
+    webhookCredentialsInfo:
+      properties:
+        name: {type: string}
+        createdOn: {type: string, format: date-time}
+        lastModifiedOn: {type: string, format: date-time}
+        securitySchema:
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuthInfo'}
+          - {$ref: '#/components/schemas/OAuth2Info'}
+          - {$ref: '#/components/schemas/OAuth2X509Info'}
+          - {$ref: '#/components/schemas/x509AuthInfo'}
+          - {$ref: '#/components/schemas/apiKeyAuthInfo'}
+      required: [name, createdOn, lastModifiedOn, securitySchema]
+    securitySchema:
+      properties:
+        securitySchema:
+          type: object
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuth'}
+          - {$ref: '#/components/schemas/OAuth2'}
+          - {$ref: '#/components/schemas/OAuth2X509'}
+          - {$ref: '#/components/schemas/x509Auth'}
+          - {$ref: '#/components/schemas/apiKeyAuth'}
+  examples:
+    queues-list:
+      summary: List of queues
+      value:
+      - {name: myqueue, accessType: NON_EXCLUSIVE, maxDeliveredUnackedMsgsPerFlow: 10000, maxMessageSizeInBytes: 10000000, maxQueueSizeInBytes: 1572864000, maxRedeliveryCount: 0, maxTtl: 2592000, messageCount: 150, queueSizeInBytes: 245760, unacknowledgedMessageCount: 0}
+      - {name: myqueue2, accessType: EXCLUSIVE, maxDeliveredUnackedMsgsPerFlow: 5000, maxMessageSizeInBytes: 5000000, maxQueueSizeInBytes: 1048576000, maxRedeliveryCount: 3, maxTtl: 86400, deadMsgQueue: dlq-queue, messageCount: 45, queueSizeInBytes: 102400, unacknowledgedMessageCount: 5}
+    queue-details:
+      summary: Queue details
+      value: {name: myqueue, accessType: NON_EXCLUSIVE, maxDeliveredUnackedMsgsPerFlow: 10000, maxMessageSizeInBytes: 10000000, maxQueueSizeInBytes: 1572864000, maxRedeliveryCount: 0, maxTtl: 2592000, messageCount: 150, queueSizeInBytes: 245760, unacknowledgedMessageCount: 0}
+    queue-config-basic:
+      summary: Basic queue configuration
+      value: {accessType: NON_EXCLUSIVE}
+    queue-config-advanced:
+      summary: Advanced queue configuration with all options
+      value: {accessType: EXCLUSIVE, maxDeliveredUnackedMsgsPerFlow: 5000, maxMessageSizeInBytes: 5000000, maxQueueSizeInBytes: 1048576000, respectTtl: true, maxRedeliveryCount: 3, maxTtl: 86400, deadMsgQueue: dlq-queue}
+    queue-not-found:
+      summary: Queue not found
+      value: {code: '404', message: Queue not found}
+    queue-subscriptions-list:
+      summary: List of queue subscriptions
+      value:
+      - {topicPattern: topic/orders/*, queueName: myqueue}
+      - {topicPattern: topic/events/+, queueName: myqueue}
+    queue-subscription-details:
+      summary: Queue subscription details
+      value: {topicPattern: topic/orders/*, queueName: myqueue}
+    queue-subscription-not-found:
+      summary: Queue subscription not found
+      value: {code: '404', message: Queue subscription not found}
+    webhook-subscriptions-list:
+      summary: List of webhook subscriptions
+      value:
+      - name: webhook-1
+        address: queue:myqueue
+        qos: 1
+        pushConfig: {type: webhook, endpoint: 'https://mywebhook.com/messages', exemptHandshake: false, onPremise: false, cloudConnectorLocationId: ''}
+        serviceInstanceId: 550e8400-e29b-41d4-a716-446655440000
+        createdOn: '2024-02-12T10:30:00.000Z'
+        lastUpdatedOn: '2024-02-12T10:30:00.000Z'
+        handshakeStatus: Completed
+        subscriptionStatus: Active
+        subscriptionStatusReason: ''
+      - name: webhook-2
+        address: queue:myqueue2
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook2.com/events
+          exemptHandshake: false
+          securitySchema: {type: credential-ref, credentialName: my-credentials}
+          onPremise: false
+          cloudConnectorLocationId: ''
+        serviceInstanceId: 550e8400-e29b-41d4-a716-446655440001
+        createdOn: '2024-02-12T11:00:00.000Z'
+        lastUpdatedOn: '2024-02-12T11:00:00.000Z'
+        handshakeStatus: Completed
+        subscriptionStatus: Paused
+        subscriptionStatusReason: Paused by user
+    webhook-bad-request:
+      summary: Bad request - Invalid webhook data
+      value:
+        error: {code: BAD_REQUEST, message: Invalid webhook subscription data}
+        message: Invalid webhook subscription data
+    webhook-internal-error:
+      summary: Internal server error
+      value:
+        error: {code: '500', message: Internal Server Error}
+        message: Internal Server Error
+    webhook-credentials-info-basic:
+      summary: Webhook credentials info with basic auth
+      value:
+        name: my-basic-credentials
+        createdOn: '2024-02-12T09:00:00.000Z'
+        lastModifiedOn: '2024-02-12T09:00:00.000Z'
+        securitySchema: {type: basicAuth, user: myuser}
+    webhook-credentials-info-oauth2:
+      summary: Webhook credentials info with OAuth2
+      value:
+        name: my-oauth-credentials
+        createdOn: '2024-02-12T09:00:00.000Z'
+        lastModifiedOn: '2024-02-12T09:00:00.000Z'
+        securitySchema: {type: oauth2, grantType: client_credentials, clientId: my-client-id, tokenUrl: 'https://oauth.example.com/token'}
+    webhook-credentials-status-list:
+      summary: Webhook credentials status list
+      value:
+        credentialLastUpdatedOn: '2024-02-12T10:00:00.000Z'
+        subscriptions:
+        - {name: webhook-1, href: /sap-event-mesh/rest/api/v1/subscriptions/webhook-1, status: active}
+        - {name: webhook-2, href: /sap-event-mesh/rest/api/v1/subscriptions/webhook-2, status: paused}
+    credentials-update-response:
+      summary: Credentials update response
+      value: {href: /sap-event-mesh/rest/api/v1/webhook-credentials/my-credentials/status}
+    credential-bad-request:
+      summary: Bad request for credentials
+      value:
+        error: {code: INVALID_INPUT, message: Invalid credential data}
+    credential-internal-error:
+      summary: Internal server error for credentials
+      value:
+        error: {code: '500', message: Internal Server Error}
+    queue-error-bad-request:
+      summary: Bad request error for queue operations
+      value: {code: '400', message: Bad Request}
+    queue-error-unauthorized:
+      summary: Unauthorized error for queue operations
+      value: {code: '401', message: Unauthorized}
+    queue-error-forbidden:
+      summary: Forbidden error for queue operations
+      value: {code: '403', message: Forbidden}
+    queue-error-not-found:
+      summary: Not found error for queue operations
+      value: {code: '404', message: Not Found}
+    queue-error-internal-server:
+      summary: Internal server error for queue operations
+      value: {code: '500', message: Internal Server Error}
+    credentials-error-bad-request:
+      summary: Bad request error for webhook credentials
+      value:
+        error: {code: '400', message: Bad Request}
+    credentials-error-unauthorized:
+      summary: Unauthorized error for webhook credentials
+      value:
+        error: {code: '401', message: Unauthorized}
+    credentials-error-forbidden:
+      summary: Forbidden error for webhook credentials
+      value:
+        error: {code: '403', message: Forbidden}
+    credentials-error-not-found:
+      summary: Not found error for webhook credentials
+      value:
+        error: {code: '404', message: Not Found}
+    credentials-error-conflict:
+      summary: Conflict error for webhook credentials
+      value:
+        error: {code: '409', message: Conflict}
+    credentials-error-internal-server:
+      summary: Internal server error for webhook credentials
+      value:
+        error: {code: '500', message: Internal Server Error}
+    webhook-error-bad-request:
+      summary: Bad request error for webhook subscriptions
+      value:
+        error: {code: '400', message: Bad Request}
+        message: Invalid request parameters
+    webhook-error-unauthorized:
+      summary: Unauthorized error for webhook subscriptions
+      value:
+        error: {code: '401', message: Unauthorized}
+        message: Unauthorized - Authentication failed
+    webhook-error-forbidden:
+      summary: Forbidden error for webhook subscriptions
+      value:
+        error: {code: '403', message: Forbidden}
+        message: Forbidden - Insufficient permissions
+    webhook-error-not-found:
+      summary: Not found error for webhook subscriptions
+      value:
+        error: {code: '404', message: Not Found}
+        message: Webhook subscription not found
+    webhook-error-conflict:
+      summary: Conflict error for webhook subscriptions
+      value:
+        error: {code: '409', message: Conflict}
+        message: Webhook subscription already exists
+    webhook-error-internal-server:
+      summary: Internal server error for webhook subscriptions
+      value:
+        error: {code: '500', message: Internal Server Error}
+        message: An internal server error occurred
+    webhook-credentials-basic-auth:
+      summary: A webhook credential with basic auth
+      value:
+        name: credential-name
+        securitySchema: {type: basicAuth, user: user, password: xxx}
+    webhook-credentials-oauth2:
+      summary: A webhook credential with oauth2 client secret
+      value:
+        name: credential-name
+        securitySchema: {type: oauth2, grantType: client_credentials, tokenUrl: 'https://xx.xx.xx/', clientId: xxxxxx, clientSecret: xxxxx}
+    webhook-credentials-oauth2-x509:
+      summary: A webhook credential with oauth2 mTLS. Only x509 certificates are accepted. Values for certificate and key must be provided in PEM format.
+      value:
+        name: credential-name
+        securitySchema:
+          type: oauth2-x509
+          grantType: client_credentials
+          tokenUrl: https://xx.xx.xx/
+          clientId: xxxxxx
+          certificate: |-
+            -----BEGIN CERTIFICATE-----
+            xxxx
+            -----END CERTIFICATE-----
+          key: |-
+            -----BEGIN PRIVATE KEY-----
+            xxxxx
+            -----END PRIVATE KEY-----
+    webhook-credentials-x509-auth:
+      summary: A webhook credentials with x509 certificate. Values for certificate and key must be provided in PEM format.
+      value:
+        name: credential-name
+        securitySchema:
+          type: x509-auth
+          certificate: |-
+            -----BEGIN CERTIFICATE-----
+            xxxx
+            -----END CERTIFICATE-----
+          key: |-
+            -----BEGIN PRIVATE KEY-----
+            xxxxx
+            -----END PRIVATE KEY-----
+    webhook-credentials-api-key-auth-in-header:
+      summary: A webhook credentials with APIKey auth in header.
+      value:
+        name: credential-name
+        securitySchema: {type: api-key-auth, in: header, apiKeyName: xxxx, apiKeyValue: xxx}
+    webhook-credentials-api-key-auth-in-query:
+      summary: A webhook credentials with APIKey auth in query.
+      value:
+        name: credential-name
+        securitySchema: {type: api-key-auth, in: query, apiKeyName: xxxx, apiKeyValue: xxx}
+    unauthorized:
+      summary: Unauthorized
+      value:
+        error: {code: UNAUTHORIZED, message: Unauthorized}
+    notfound:
+      summary: Not found
+      value:
+        error: {code: NOT_FOUND, message: Credential with given name not found}
+    invalidInput:
+      summary: Invalid input
+      value:
+        error: {code: INVALID_INPUT, message: name is invalid}
+    conflict:
+      summary: Credential name conflict
+      value:
+        error: {code: CONFLICT, message: Credential with given name already exists}
+    webhookCredentialsList:
+      summary: List of all webhook credentials
+      value:
+        results:
+        - name: string
+          createdOn: string
+          lastModifiedOn: string
+          securitySchema: {type: basicAuth, user: xxx}
+        - name: string
+          createdOn: string
+          lastModifiedOn: string
+          securitySchema: {type: oauth2, grantType: client_credentials, clientId: xxxx, tokenUrl: 'https://xxx'}
+    webhookCredentialsEmptyList:
+      summary: Empty list of all webhook credentials
+      value:
+        results: []
+    securitySchema-x509-auth:
+      summary: Credentials with x509 auth
+      value:
+        securitySchema:
+          type: x509-auth
+          certificate: |-
+            -----BEGIN CERTIFICATE-----
+            xxxx
+            -----END CERTIFICATE-----
+          key: |-
+            -----BEGIN PRIVATE KEY-----
+            xxxxx
+            -----END PRIVATE KEY-----
+    securitySchema-oauth2-x509:
+      summary: Credentials with oauth2 x509
+      value:
+        securitySchema:
+          type: oauth2-x509
+          grantType: client_credentials
+          tokenUrl: https://xx.xx.xx/
+          clientId: xxxxxx
+          certificate: |-
+            -----BEGIN CERTIFICATE-----
+            xxxx
+            -----END CERTIFICATE-----
+          key: |-
+            -----BEGIN PRIVATE KEY-----
+            xxxxx
+            -----END PRIVATE KEY-----
+    securitySchema-api-key-auth-in-header:
+      summary: Credentials with api key auth in header
+      value:
+        securitySchema: {type: api-key-auth, in: header, apiKeyName: xxxx, apiKeyValue: xxx}
+    securitySchema-api-key-auth-in-query:
+      summary: Credentials with api key auth in query
+      value:
+        securitySchema: {type: api-key-auth, in: query, apiKeyName: xxxx, apiKeyValue: xxx}
+    securitySchema-oauth2:
+      summary: Credentials with outh2
+      value:
+        securitySchema: {type: oauth2, grantType: client_credentials, tokenUrl: 'https://xx.xx.xx/', clientId: xxxxxx, clientSecret: xxxxx}
+    subscription-no-auth:
+      summary: Webhook endpoint does not require authentication
+      value:
+        name: webhook-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig: {endpoint: 'https://mywebhook.com/messages', exemptHandshake: false}
+    subscription-basic-auth:
+      summary: Webhook endpoint requires basic authentication
+      value:
+        name: webhook-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: basicAuth, user: user1, password: welcome123}
+    subscription-oauth2-cc:
+      summary: Webhook endpoint requires OAuth2 client_credentials
+      value:
+        name: webhook-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: oauth2, grantType: client_credentials, clientId: my_client_id, clientSecret: my_client_secret, tokenUrl: 'https://myuaa.com/oauth/token'}
+    subscription-oauth2-cc-scopes:
+      summary: Webhook endpoint requires OAuth2 client_credentials with scopes
+      value:
+        name: webhook-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema:
+            type: oauth2
+            grantType: client_credentials
+            clientId: my_client_id
+            clientSecret: my_client_secret
+            scopes: [read, manage]
+            tokenUrl: https://myuaa.com/oauth/token
+    subscription-refer-credential-name:
+      summary: A webhook whose credentials are referred with credential name
+      value:
+        name: webhook-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: credential-ref, credentialName: credentials-name}
+    securitySchema-oauth2ClientSecret:
+      summary: A security schema with oauth2 cleint-id & client secret
+      value:
+        securitySchema: {type: oauth2, grantType: client_credentials, clientId: xxxxxx, clientSecret: xxxxx, tokenUrl: 'https://xx.xx.xx/'}
+    securitySchema-refer-credentials:
+      summary: A security schema with referring to uploaded credential name
+      value:
+        securitySchema: {type: credential-ref, credentialName: xxx}
+    webhook-subscription-no-auth:
+      summary: A subscription whose webhook endpoint does not require authentication
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig: {type: webhook, endpoint: 'https://mywebhook.com/messages', exemptHandshake: false, onPremise: false, cloudConnectorLocationId: string}
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-basic-auth:
+      summary: A subscription whose webhook endpoint requires basic authentication
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: basicAuth, user: user1, password: welcome123}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-oauth2-cc:
+      summary: A subscription whose webhook endpoint requires OAuth2 client_credentials
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: oauth2, grantType: client_credentials, clientId: my_client_id, clientSecret: my_client_secret, tokenUrl: 'https://myuaa.com/oauth/token'}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-oauth2-cc-scopes:
+      summary: A subscription whose webhook endpoint requires OAuth2 client_credentials with scopes
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema:
+            type: oauth2
+            grantType: client_credentials
+            clientId: my_client_id
+            clientSecret: my_client_secret
+            scopes: [read, manage]
+            tokenUrl: https://myuaa.com/oauth/token
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-oauth2-x509:
+      summary: A subscription whose webhook endpoint requires OAuth2-X509 client_credentials
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {grantType: client_credentials, clientId: my_client_id, tokenUrl: 'https://myuaa.com/oauth/token', type: oauth2-x509, certificate: '-----BEGIN CERTIFICATE-----\nxxxx\n-----END CERTIFICATE-----', key: '-----BEGIN PRIVATE KEY-----\nxxxxx\n-----END PRIVATE KEY-----'}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-oauth2-x509-scopes:
+      summary: A subscription whose webhook endpoint requires OAuth2-X509 client_credentials with scopes
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema:
+            grantType: client_credentials
+            clientId: my_client_id
+            tokenUrl: https://myuaa.com/oauth/token
+            scopes: [read, manage]
+            type: oauth2-x509
+            certificate: '-----BEGIN CERTIFICATE-----\nxxxx\n-----END CERTIFICATE-----'
+            key: '-----BEGIN PRIVATE KEY-----\nxxxxx\n-----END PRIVATE KEY-----'
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-x509-auth:
+      summary: A subscription whose webhook endpoint requires X509Auth authentication
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: x509-auth, certificate: '-----BEGIN CERTIFICATE-----\nxxxx\n-----END CERTIFICATE-----', key: '-----BEGIN PRIVATE KEY-----\nxxxxx\n-----END PRIVATE KEY-----'}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-api-key-auth-header:
+      summary: A subscription whose webhook endpoint requires APIKey auth in header
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: api-key-auth, in: header, apiKeyName: api-key-sample-name, apiKeyValue: api-key-sample-value}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-api-key-auth-query:
+      summary: A subscription whose webhook endpoint requires APIKey auth in query
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: api-key-auth, in: query, apiKeyName: api-key-sample-name, apiKeyValue: api-key-sample-value}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-refer-credential-name:
+      summary: A subscription whose webhook credentials are referred with credential name
+      value:
+        name: subscription-name
+        address: queue:queue-name
+        qos: 1
+        pushConfig:
+          type: webhook
+          endpoint: https://mywebhook.com/messages
+          exemptHandshake: false
+          securitySchema: {type: credential-ref, credentialName: credentials-name}
+          onPremise: false
+          cloudConnectorLocationId: string
+        defaultContentType: string
+        serviceInstanceId: string
+    webhook-subscription-created:
+      summary: Subscription created
+      value: {href: 'https://{server}/v1/webhooks/subscription-name'}
+    bad-webhook-subscription-name:
+      summary: subscription name is invalid
+      value:
+        error: {code: INVALID INPUT, message: webhook subscription name is invalid}
+        message: webhook subscription name is invalid
+    duplicate-webhook-subscription:
+      summary: webhook subscription already exists
+      value:
+        error: {code: CONFLICT, message: webhook subscription with given name already exists}
+        message: webhook subscription with given name already exists
+    invalidCredentials:
+      summary: Invalid credentials
+      value:
+        error: {code: UNAUTHORIZED, message: Unauthorized}
+        message: Unauthorized
+    webhook-subscriptionInfo:
+      summary: A subscription info
+      value:
+        name: string
+        address: string
+        qos: 0
+        pushConfig: {type: webhook, endpoint: string, exemptHandshake: true, onPremise: true, cloudConnectorLocationId: string}
+        serviceInstanceId: 550e8400-e29b-41d4-a716-446655440000
+        createdOn: '2021-12-02T12:51:05.572Z'
+        lastUpdatedOn: '2021-12-02T12:51:05.572Z'
+        handshakeStatus: Not Initiated
+        subscriptionStatus: Active
+        subscriptionStatusReason: string
+    webhook-subscriptionInfoCredentialRef:
+      summary: A subscription info whose webhook credentials are referred with credential name
+      value:
+        name: string
+        address: string
+        qos: 0
+        pushConfig:
+          type: webhook
+          endpoint: string
+          exemptHandshake: true
+          securitySchema: {type: credential-ref, credentialName: string}
+          onPremise: true
+          cloudConnectorLocationId: string
+        serviceInstanceId: 550e8400-e29b-41d4-a716-446655440000
+        createdOn: '2021-12-02T12:51:05.572Z'
+        lastUpdatedOn: '2021-12-02T12:51:05.572Z'
+        handshakeStatus: Not Initiated
+        subscriptionStatus: Active
+        subscriptionStatusReason: string
+    webhook-subscription-not-found:
+      summary: Subscription not found
+      value:
+        error: {code: NOT_FOUND, message: Webhook subscription with given name not found}
+        message: Webhook subscription with given name not found
+    securitySchema-basicAuth:
+      summary: A security schema with basic auth
+      value:
+        securitySchema: {type: basicAuth, user: user1, password: welcome123}
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: OAuth2 client credentials flow for Event Mesh Management API authentication
+      flows:
+        clientCredentials:
+          tokenUrl: https://your-event-mesh-host/oauth/token
+          scopes: {read: Read access to resources, write: Write access to resources, manage: Full management access}
+  headers: {}

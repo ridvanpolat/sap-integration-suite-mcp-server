@@ -1,0 +1,854 @@
+swagger: '2.0'
+info:
+  title: Components
+  version: 1.0.0
+  description: "The Components API enables you to access Edge Integration Cell system monitoring data, including components, pods, events, metrics, and runtime parameters.  \n\nThis API is implemented based on OData version 4 specification."
+externalDocs: {description: 'SAP Integration Suite documentation: OData API - Component Monitor', url: 'https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/49f487ec05c54861a0f970e9bdc529e5.html'}
+x-sap-api-type: ODATAV4
+x-sap-shortText: Get an overview of Edge Integration Cell components and related resources.
+basePath: /local/api/eic/v1
+schemes: [https]
+x-sap-hub-capabilities: {try-out: false}
+x-servers:
+- url: https://{API Virtual Host}/local/api/eic/v1
+  description: Local OData API Access for Edge Integration Cell - see (https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html)
+  templates:
+    API Virtual Host: {description: The Virtual Host that you have defined for your Edge Integration Cell in the Edge Lifecycle Management.}
+securityDefinitions:
+  BasicAuthentication: {type: basic, description: 'You can check the following documentation for the supported authentication methods: https://help.sap.com/docs/SAP_INTEGRATION_SUITE/51ab953548be4459bfe8539ecaeee98d/a17fa4df7744455c8a35d1c3c2e45787.html'}
+security:
+- BasicAuthentication: []
+consumes: [application/json]
+produces: [application/json, text/plain]
+tags:
+- {name: Components}
+- {name: Pods}
+- {name: Runtime Parameters}
+paths:
+  /Components:
+    get:
+      tags: [Components]
+      summary: Get all components
+      description: |-
+        You can use the following request to get all Edge Integration Cell components with their status. Several filter operations are supported. Examples:
+        - ```GET /Components```
+        - ```GET /Components?$select=OverallStatus```
+        - ```GET /Components?$count=true&$filter=OverallStatus eq 'OK'```
+        - ```GET /Components?$expand=Pods,RuntimeParameters```
+        - ```GET /Components?$filter=contains(Name,'Edge')&$expand=Pods```
+      operationId: listComponents
+      parameters:
+      - {name: $filter, in: query, type: string, description: Filter components by property values.}
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Pods, RuntimeParameters]
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [ID, Name, OverallStatus]
+      - {$ref: '#/parameters/count'}
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/orderby'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved components.
+          schema:
+            title: Collection of Components
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.Component'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {ID: EDGE_API, Name: Edge API App, OverallStatus: OK}
+                - {ID: WORKER, Name: Worker, OverallStatus: OK}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/$count:
+    get:
+      tags: [Components]
+      summary: Get number of components. Supports filter option.
+      description: "You can use the following request to retrieve the number of components. The filter option is taken into account if applied. Examples: \n- ```GET /Components/$count``` \n- ```GET /Components/$count?$filter=contains(Name,'Edge')```\n- ```GET /Components/$count?$filter=OverallStatus eq 'OK'```"
+      operationId: countComponents
+      parameters:
+      - {name: $filter, in: query, type: string, description: Filter components by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved components.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}:
+    get:
+      tags: [Components]
+      summary: Get a single component by its identifier.
+      description: "You can use the following request to get a specific component. Examples: \n- ```GET /Components/EDC``` \n- ```GET /Components/WORKER?$expand=RuntimeParameters```\n- ```GET /Components/WORKER?$select=Name```"
+      operationId: getComponent
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Pods, RuntimeParameters]
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Name, OverallStatus]
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved component.
+          schema:
+            title: Component
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Component'}
+          examples:
+            application/json:
+              d: {ID: WORKER, Name: Worker, OverallStatus: OK}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/com.sap.eic.api.restart:
+    post:
+      tags: [Components]
+      summary: Restart a component.
+      description: "You can use the following request to restart a component. Example: \n- ```POST /Components/EDC/com.sap.eic.api.restart```"
+      operationId: restartComponent
+      x-sap-operation-intent: action
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      responses:
+        '200': {description: Restart of component triggered.}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods:
+    get:
+      tags: [Pods]
+      summary: List pods of a component with their status.
+      description: "You can use the following request to get all pods of a specific component with their status. Examples: \n- ```GET /Components/EDGE_API/Pods``` \n- ```GET /Components/EDC/Pods?$count=true&$filter=Status eq 'Running'``` \n- ```GET /Components/WORKER/Pods?$select=Status&$expand=Metrics```"
+      operationId: listComponentPods
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Events, Metrics]
+      - {name: $filter, in: query, type: string, description: Filter pods by property values.}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Name, Status, RestartCount, PodReadyStatus]
+      - {$ref: '#/parameters/count'}
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/orderby'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved pods.
+          schema:
+            title: Collection of Pod
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.Pod'}
+          examples:
+            application/json:
+              d:
+                results:
+                - Name: pod1
+                  Status: RUNNING
+                  PodReadyStatus: {actual: 2, target: 2}
+                  RestartCount: 0
+                - Name: pod2
+                  Status: RUNNING
+                  PodReadyStatus: {actual: 2, target: 2}
+                  RestartCount: 2
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/$count:
+    get:
+      tags: [Pods]
+      summary: Get number of pods. Supports filter option.
+      description: "You can use the following request to retrieve the number of pods. The filter option is taken into account if applied. Examples: \n- ```GET /Components/EDC/Pods/$count```\n- ```GET /Components/WORKER/Pods/$count?$filter=Status eq 'Running'```"
+      operationId: countComponentPods
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {name: $filter, in: query, type: string, description: Filter pods by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved pods.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}:
+    get:
+      tags: [Pods]
+      summary: Get a single pod by its name.
+      description: "You can use the following request to get a specific pod. Examples: \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2``` \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2?$expand=Events``` \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2?$select=RestartCount```"
+      operationId: getComponentPod
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/PodName'}
+      - name: $expand
+        in: query
+        uniqueItems: true
+        type: array
+        description: Expand related entities.
+        items:
+          type: string
+          enum: [Events, Metrics]
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Status, RestartCount, PodReadyStatus]
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved pod.
+          schema:
+            title: Pod
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.Pod'}
+          examples:
+            application/json:
+              d:
+                Name: pod1
+                Status: RUNNING
+                PodReadyStatus: {actual: 2, target: 2}
+                RestartCount: 0
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}/Events:
+    get:
+      tags: [Pods]
+      summary: Get all event logs for a pod.
+      description: "You can use the following request to get all event logs for a specific pod. Examples: \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2/Events``` \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2/Events?$filter=Type eq 'WARNING'``` \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2/Events?$filter=contains(Message,'container')``` "
+      operationId: listPodEvents
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/PodName'}
+      - {name: $filter, in: query, type: string, description: Filter pod events by property values.}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [Message, Type, Reason, Origin, OccurrenceCount, FirstOccurrence, LastOccurrence]
+      - {$ref: '#/parameters/count'}
+      - {$ref: '#/parameters/orderby'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved event logs.
+          schema:
+            title: Collection of PodEvent
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.PodEvent'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {Message: Started container istio-init, Type: Normal, Reason: Started, Origin: kubelet, OccurrenceCount: 1, FirstOccurrence: '2026-02-02T15:21:59Z', LastOccurrence: '2026-02-02T15:21:59Z'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}/Events/$count:
+    get:
+      tags: [Pods]
+      summary: Get number of event logs for a pod. Supports filter option.
+      description: "You can use the following request to retrieve the number of a pod's event logs. The filter option is taken into account if applied. Examples: \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2/Events/$count``` \n- ```GET /Components/WORKER/Pods/worker-f1234ab-ab1c2/Events/$count?$filter=Type eq 'WARNING'``` "
+      operationId: countPodEvents
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/PodName'}
+      - {name: $filter, in: query, type: string, description: Filter pod events by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved log events.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}/Metrics:
+    get:
+      tags: [Pods]
+      summary: Returns all metrics for a pod.
+      description: "You can use the following request to retrieve all metrics for a specific pod. Examples: \n- ```GET /Components/POLICYENGINE/Pods/policyengine-f1234ab-ab1c2/Metrics``` \n- ```GET /Components/POLICYENGINE/Pods/policyengine-f1234ab-ab1c2/Metrics?$select=MetricValue``` \n- ```GET /Components/EDC/Pods/edc-f1234ab-ab1c2/Metrics?$filter=contains(MetricKey,'STATUS')``` \n- ```GET /Components/EDC/Pods/edc-f1234ab-ab1c2/Metrics?$filter=IsUnexpected eq true``` "
+      operationId: listPodMetrics
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/PodName'}
+      - {name: $filter, in: query, type: string, description: Filter metrics by property values.}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [MetricKey, MetricValue, IsUnexpected, ExpectedValue]
+      - {$ref: '#/parameters/count'}
+      - {$ref: '#/parameters/orderby'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved metrics.
+          schema:
+            title: Collection of PodMetric
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.PodMetric'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {MetricKey: eec_cloud_connection_status, MetricValue: '1', IsUnexpected: false, ExpectedValue: null}
+                - {MetricKey: eec_solace_connection_status, MetricValue: '1', IsUnexpected: false, ExpectedValue: null}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}/Metrics/$count:
+    get:
+      tags: [Pods]
+      summary: Get number of metrics for a pod. Supports filter option.
+      description: "You can use the following request to retrieve the number of a pod's metrics. The filter option is taken into account if applied. Examples: \n- ```GET /Components/POLICYENGINE/Pods/policyengine-f1234ab-ab1c2/Metrics/$count``` \n- ```GET /Components/EDC/Pods/edc-f1234ab-ab1c2/Metrics/$count?$filter=contains(MetricKey,'STATUS')``` \n- ```GET /Components/EDC/Pods/edc-f1234ab-ab1c2/Metrics/$count?$filter=IsUnexpected eq true``` "
+      operationId: countPodMetrics
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/PodName'}
+      - {name: $filter, in: query, type: string, description: Filter metrics by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved metrics.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/Pods/{podName}/Metrics/{metricKey}:
+    get:
+      tags: [Pods]
+      summary: Returns a single metric by its key.
+      description: "You can use the following request to retrieve a specific metric. Example: \n- ```GET /Components/POLICYENGINE/Pods/policyengine-f1234ab-ab1c2/Metrics/pe_solace_connection_status```"
+      operationId: listPodMetrics
+      parameters:
+      - name: componentId
+        in: path
+        required: true
+        type: string
+        description: |-
+          Component identifier.
+           Example: ```POLICYENGINE```
+        items:
+          type: string
+          enum: [AUDITLOG_AGENT, DESTSVC_DATA, DESTSVC_REST, EDC, EDGE_API, EDGE_EVENT_CONTROLLER, ELA, ESAC, MDC, POLICYENGINE, POSTGRES, REDIS, SOLACE, SOLOPS, WORKER]
+      - name: podName
+        in: path
+        required: true
+        type: string
+        description: |-
+          Pod name.
+           Example: ```policyengine-f1234ab-ab1c2```
+      - name: metricKey
+        in: path
+        required: true
+        type: string
+        description: |-
+          Metric key.
+           Example:  ```pe_solace_connection_status```
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [MetricValue, IsUnexpected, ExpectedValue]
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved metric.
+          schema:
+            title: PodMetric
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.PodMetric'}
+          examples:
+            application/json:
+              d: {MetricKey: pe_solace_connection_status, MetricValue: '1', IsUnexpected: false, ExpectedValue: null}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/RuntimeParameters:
+    get:
+      tags: [Runtime Parameters]
+      summary: List all runtime parameters for a component.
+      description: |-
+        You can use the following request to get all runtime parameters for a specific component. Several filter operations are supported. Examples:
+        - ```GET /Components/EDGE_API/RuntimeParameters```
+        - ```GET /Components/WORKER/RuntimeParameters?$filter=IsDefault eq false```
+        - ```GET /Components/WORKER/RuntimeParameters?$filter=contains(ID,'ADAPTER')```
+        - ```GET /Components/EDC/RuntimeParameters/com.sap.eic.api.RuntimeParameterLogLevel?$filter=Value eq com.sap.eic.api.LogLevel'INFO'```
+        - ```GET /Components/WORKER/RuntimeParameters/EDC/RuntimeParameters/com.sap.eic.api.RuntimeParameterSiValue?$filter=Unit eq 'Mi'```
+        - ```GET /Components/WORKER/RuntimeParameters/EDC/RuntimeParameters/com.sap.eic.api.RuntimeParameterSiValue?$filter=Value gt 400```
+      operationId: listRuntimeParameters
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {name: $filter, in: query, type: string, description: Filter runtime parameters by property values.}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [ID, IsDefault]
+      - {$ref: '#/parameters/count'}
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/orderby'}
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved runtime parameters.
+          schema:
+            title: Collection of RuntimeParameter
+            type: object
+            properties:
+              d:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+          examples:
+            application/json:
+              d:
+                results:
+                - {ID: LOG_LEVEL, IsDefault: false, Value: INFO}
+                - {ID: MAX_REPLICAS, IsDefault: true, Value: 4}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/RuntimeParameters/$count:
+    get:
+      tags: [Runtime Parameters]
+      summary: Get number of runtime parameters. Supports filter option.
+      description: |-
+        You can use the following request to retrieve the number of runtime parameters for a component. The filter option is taken into account if applied. Examples:
+        - ```GET /Components/EDGE_API/RuntimeParameters/$count```
+        - ```GET /Components/WORKER/RuntimeParameters/$count?$filter=IsDefault eq false```
+        - ```GET /Components/WORKER/RuntimeParameters/$count?$filter=contains(ID,'MEMORY')```
+      operationId: countRuntimeParameters
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {name: $filter, in: query, type: string, description: Filter runtime parameters by property values.}
+      produces: [text/plain]
+      responses:
+        '200':
+          description: Number of retrieved runtime parameters.
+          schema: {type: integer, format: int32}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /Components/{componentId}/RuntimeParameters/{parameterName}:
+    get:
+      tags: [Runtime Parameters]
+      summary: Get a single runtime parameter by its name.
+      description: |-
+        You can use the following request to retrieve a specific runtime parameter. Examples:
+        - ```GET /Components/EDGE_API/RuntimeParameters/CPU_LIMIT```
+        - ```GET /Components/WORKER/RuntimeParameters/MEMORY_LIMIT```
+      operationId: getRuntimeParameter
+      parameters:
+      - {$ref: '#/parameters/ComponentId'}
+      - {$ref: '#/parameters/ParameterName'}
+      - name: $select
+        in: query
+        description: Select properties to be returned.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum: [IsDefault]
+      produces: [application/json]
+      responses:
+        '200':
+          description: Retrieved runtime parameter.
+          schema:
+            title: RuntimeParameter
+            type: object
+            properties:
+              d: {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+          examples:
+            application/json:
+              d: {ID: MEMORY_LIMIT, IsDefault: true, Value: 512, Unit: Mi}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '403': {$ref: '#/responses/403'}
+        '404': {$ref: '#/responses/404'}
+        '429': {$ref: '#/responses/429'}
+        '500': {$ref: '#/responses/500'}
+        default: {$ref: '#/responses/error'}
+  /:
+    get:
+      tags: [CSRF Token Handling]
+      produces: [application/json]
+      description: You can use the following request to get the CSRF token which is required for write access via POST, PUT and DELETE operations. Copy the received X-CSRF-Token from the response header.
+      summary: Get CSRF token.
+      parameters:
+      - {description: To retrieve a new CSRF token the value of the header must be set to ```Fetch```., in: header, name: X-CSRF-Token, required: true, type: string, default: Fetch}
+      responses:
+        '200':
+          description: The header provides the CSRF token.
+          headers:
+            X-CSRF-Token: {description: CSRF token that can be used for all modifying requests., type: string}
+        default: {$ref: '#/responses/error'}
+parameters:
+  ComponentId:
+    name: componentId
+    in: path
+    required: true
+    type: string
+    description: |-
+      Component identifier.
+       Example: ```WORKER```
+    items:
+      type: string
+      enum: [AUDITLOG_AGENT, DESTSVC_DATA, DESTSVC_REST, EDC, EDGE_API, EDGE_EVENT_CONTROLLER, ELA, ESAC, MDC, POLICYENGINE, POSTGRES, REDIS, SOLACE, SOLOPS, WORKER]
+  PodName:
+    name: podName
+    in: path
+    required: true
+    type: string
+    description: |-
+      Pod name.
+       Example: ```worker-f1234ab-ab1c2```
+  ParameterName:
+    name: parameterName
+    in: path
+    required: true
+    type: string
+    description: |-
+      Runtime parameter name.
+       Example:  ```MEMORY_LIMIT```
+  count: {name: $count, in: query, description: Include number of items., type: boolean}
+  top: {name: $top, in: query, description: Show only the first n items., type: integer, format: int32, minimum: 0}
+  skip: {name: $skip, in: query, description: Skip the first n items., type: integer, format: int32, minimum: 0}
+  orderby: {name: $orderby, in: query, description: Order items by property values., type: string}
+responses:
+  '400': {description: Bad Request. Wrong format or structure of the provided request body or parameters.}
+  '401': {description: Unauthorized. Authorization information is missing or invalid.}
+  '403': {description: Forbidden. The required permissions to access the resource are missing.}
+  '404': {description: Not found. The requested resource could not be found.}
+  '429': {description: Too many requests. Server’s rate limit exceeded.}
+  '500': {description: Internal server error. The requested operation led to an error during execution.}
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}
+    examples:
+      application/json:
+        error:
+          code: <error code>
+          message: <error message>
+          target: <error target>
+          details:
+          - {code: <error code>, target: <error target>, message: <error message>}
+definitions:
+  com.sap.eic.api.ComponentID:
+    type: string
+    title: ComponentID
+    enum: [AUDITLOG_AGENT, DESTSVC_DATA, DESTSVC_REST, EDC, EDGE_API, EDGE_EVENT_CONTROLLER, ELA, ESAC, MDC, POLICYENGINE, POSTGRES, REDIS, SOLACE, SOLOPS, WORKER]
+  com.sap.eic.api.OverallStatus:
+    type: string
+    title: OverallStatus
+    enum: [OK, WARN, ERROR, UNKNOWN]
+  com.sap.eic.api.EventType:
+    type: string
+    title: EventType
+    enum: [NORMAL, WARNING, ERROR, UNKNOWN]
+  com.sap.eic.api.CarriageReturnHandling:
+    type: string
+    title: CarriageReturnHandling
+    enum: [0D, 8D]
+  com.sap.eic.api.InvalidCharacterHandling:
+    title: InvalidCharacterHandling
+    type: string
+    enum: [IGNORE, SUBSTITUTE]
+  com.sap.eic.api.LogLevel:
+    title: LogLevel
+    type: string
+    enum: [ERROR, WARN, INFO, DEBUG]
+  com.sap.eic.api.SolaceTier:
+    title: SolaceTier
+    type: string
+    enum: ['100', '250', 1K, 10K, 100K, 200K]
+  com.sap.eic.api.Component:
+    title: Component
+    type: object
+    required: [ID]
+    properties:
+      ID: {$ref: '#/definitions/com.sap.eic.api.ComponentID'}
+      Name: {type: string}
+      OverallStatus: {$ref: '#/definitions/com.sap.eic.api.OverallStatus'}
+      Pods:
+        type: array
+        description: Navigation property (collection of Pod). Usually returned only when expanded.
+        readOnly: true
+        items: {$ref: '#/definitions/com.sap.eic.api.Pod'}
+      RuntimeParameters:
+        type: array
+        description: Navigation property (collection of RuntimeParameter). Usually returned only when expanded.
+        readOnly: true
+        items: {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+  com.sap.eic.api.PodReadyStatus:
+    title: PodReadyStatus
+    type: object
+    properties:
+      actual: {type: integer, format: int32}
+      target: {type: integer, format: int32}
+  com.sap.eic.api.Pod:
+    title: Pod
+    type: object
+    description: com.sap.eic.api.Pod
+    required: [Name]
+    properties:
+      Name: {type: string}
+      Status: {type: string}
+      RestartCount: {type: integer, format: int32}
+      PodReadyStatus: {$ref: '#/definitions/com.sap.eic.api.PodReadyStatus'}
+      Events:
+        type: array
+        description: Navigation property (collection of PodEvent). Usually returned only when expanded.
+        readOnly: true
+        items: {$ref: '#/definitions/com.sap.eic.api.PodEvent'}
+      Metrics:
+        type: array
+        description: Navigation property (collection of PodMetric). Usually returned only when expanded.
+        readOnly: true
+        items: {$ref: '#/definitions/com.sap.eic.api.PodMetric'}
+  com.sap.eic.api.PodEvent:
+    title: PodEvent
+    type: object
+    required: [Message, Type, Reason, OccurrenceCount, FirstOccurrence]
+    properties:
+      Message: {type: string}
+      Type: {$ref: '#/definitions/com.sap.eic.api.EventType'}
+      Reason: {type: string}
+      Origin: {type: string}
+      OccurrenceCount: {type: integer, format: int32}
+      FirstOccurrence: {type: string, format: date-time, example: '2026-04-23T14:53:07Z'}
+      LastOccurrence: {type: string, format: date-time, example: '2026-04-23T14:53:07Z'}
+  com.sap.eic.api.PodMetric:
+    title: PodMetric
+    type: object
+    required: [MetricKey, IsUnexpected]
+    properties:
+      MetricKey: {type: string}
+      MetricValue: {type: string}
+      IsUnexpected: {type: boolean}
+      ExpectedValue: {type: string}
+  com.sap.eic.api.RuntimeParameter:
+    title: RuntimeParameter
+    type: object
+    required: [ID]
+    properties:
+      ID: {type: string}
+      IsDefault: {type: boolean}
+  com.sap.eic.api.RuntimeParameterBoolean:
+    title: RuntimeParameterBoolean
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {type: boolean}
+  com.sap.eic.api.RuntimeParameterCarriageReturnHandling:
+    title: RuntimeParameterCarriageReturnHandling
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {$ref: '#/definitions/com.sap.eic.api.CarriageReturnHandling'}
+  com.sap.eic.api.RuntimeParameterInt:
+    title: RuntimeParameterInt
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {type: integer, format: int32}
+  com.sap.eic.api.RuntimeParameterInvalidCharHandling:
+    title: RuntimeParameterInvalidCharHandling
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {$ref: '#/definitions/com.sap.eic.api.InvalidCharacterHandling'}
+  com.sap.eic.api.RuntimeParameterLogLevel:
+    title: RuntimeParameterLogLevel
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {$ref: '#/definitions/com.sap.eic.api.LogLevel'}
+  com.sap.eic.api.RuntimeParameterSiValue:
+    title: RuntimeParameterSiValue
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {type: integer, format: int32}
+        Unit: {type: string}
+  com.sap.eic.api.RuntimeParameterSolaceTier:
+    title: RuntimeParameterSolaceTier
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {$ref: '#/definitions/com.sap.eic.api.SolaceTier'}
+  com.sap.eic.api.RuntimeParameterString:
+    title: RuntimeParameterString
+    allOf:
+    - {$ref: '#/definitions/com.sap.eic.api.RuntimeParameter'}
+    - type: object
+      properties:
+        Value: {type: string}
+  odata.error:
+    type: object
+    required: [error]
+    properties:
+      error:
+        type: object
+        properties:
+          code: {type: string}
+          message: {type: string}
+          target: {type: string}
+          details:
+            type: array
+            items:
+              type: object
+              properties:
+                code: {type: string}
+                target: {type: string}
+                message: {type: string}

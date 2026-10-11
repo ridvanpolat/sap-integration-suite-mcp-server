@@ -1,0 +1,220 @@
+openapi: 3.0.0
+info: {title: API Portal - Virtual Host Request (CF), description: 'This API enables you to create and manage virtual host requests. To access this API, make sure that the role ''APIManagement.SelfService.Administrator'' is assigned to you.', version: '1.0', x-targetEndpoint: 'https://us10trialapiportal.cfapps.us10.hana.ondemand.com/apiportal/operations/1.0/Configuration.svc/'}
+x-sap-shortText: Enables you to create, update, delete and view the virtual host requests.
+x-sap-api-type: ODATA
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/docs/sap-api-management/sap-api-management/configuring-additional-virtual-host-in-cloud-foundry-environment'}
+servers:
+- url: https://{apiportal-url}/apiportal/operations/1.0/Configuration.svc
+  description: API Portal API endpoint
+  variables:
+    apiportal-url: {description: API Portal API endpoint, default: ''}
+paths:
+  /VirtualHostRequests:
+    get:
+      summary: Entities from VirtualHostRequest
+      description: Returns all the virtual host requests for the tenant.
+      tags: [VirtualHostRequests]
+      parameters:
+      - name: $orderby
+        in: query
+        description: Order items by property values
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          id: {value: id}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          allocationStatus: {value: allocationStatus}
+      responses:
+        '200':
+          description: Retrieved all the virtual host request entities.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Collection of VirtualHostRequests
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/components/schemas/apimgmtconfiguration.VirtualHostRequest'}
+        default: {$ref: '#/components/responses/error'}
+    post:
+      summary: Create or update or delete VirtualHostRequest Entity.
+      description: Create or update or delete the virtual host requests.
+      tags: [VirtualHostRequests]
+      requestBody:
+        description: Create a new entity or update the existing entity.
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/apimgmtconfiguration.VirtualHostRequest-create-update-delete'}
+      responses:
+        '201':
+          description: Created entity
+          content:
+            application/json:
+              schema: {title: Created VirtualHostRequest, $ref: '#/components/schemas/apimgmtconfiguration.VirtualHostRequest'}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        default: {$ref: '#/components/responses/error'}
+  /VirtualHostRequests('{id}'):
+    get:
+      summary: Entity from VirtualHostRequest
+      description: Returns the virtual host request entity by key.
+      tags: [VirtualHostRequests]
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: 'key: id'
+        schema: {type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          allocationStatus: {value: allocationStatus}
+      responses:
+        '200':
+          description: VirtualHostRequest Entity
+          content:
+            application/json:
+              schema: {type: object, title: VirtualHostRequest Entity, $ref: '#/components/schemas/apimgmtconfiguration.VirtualHostRequest'}
+        default: {$ref: '#/components/responses/error'}
+components:
+  securitySchemes:
+    OAuth2_ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+          scopes: {}
+  parameters:
+    top:
+      name: $top
+      in: query
+      description: Show only the first n items
+      schema: {type: integer}
+    skip:
+      name: $skip
+      in: query
+      description: Skip the first n items
+      schema: {type: integer}
+    count:
+      name: $count
+      in: query
+      description: Include count of items
+      schema: {type: boolean}
+    filter:
+      name: $filter
+      in: query
+      description: Filter items by property values
+      schema: {type: string}
+    search:
+      name: $search
+      in: query
+      description: Search items by search phrases
+      schema: {type: string}
+    orderby:
+      name: $orderby
+      in: query
+      description: Order items by property values
+      schema:
+        type: array
+        items: {type: string}
+    select:
+      name: $select
+      in: query
+      description: Select properties to be returned
+      schema:
+        type: array
+        items: {type: string}
+  schemas:
+    apimgmtconfiguration.VirtualHostRequest:
+      type: object
+      properties:
+        accountId: {type: string, maxLength: 255, description: The account ID of the user who created the virtual host request.}
+        allocationStatus: {type: string, maxLength: 20, description: The status of the virtual host request allocation.}
+        id: {type: string, maxLength: 36, description: The unique identifier of the virtual host request.}
+        isClientAuthEnabled: {type: boolean, default: false, description: Indicates whether client authentication is enabled for the virtual host request.}
+        isDefaultVirtualHostRequest: {type: boolean, default: false, description: Indicates whether the virtual host request is the default virtual host request.}
+        isForCustomDomain: {type: boolean, default: false, description: Indicates whether the virtual host request is for a custom domain.}
+        keyStoreAlias: {type: string, default: null, maxLength: 256, description: The alias of the key store used for the virtual host request.}
+        keyStoreName: {type: string, default: null, maxLength: 256, description: The name of the key store used for the virtual host request.}
+        life_cycle:
+          allOf:
+          - {$ref: '#/components/schemas/apimgmtconfiguration.History'}
+        operation: {type: string, maxLength: 20, description: The operation performed on the virtual host request.}
+        trustStore: {type: string, default: null, maxLength: 256, description: The trust store used for the virtual host request.}
+        virtualHostId: {type: string, maxLength: 36, description: The unique identifier of the virtual host.}
+        virtualHostUrl: {type: string, maxLength: 2048, description: The URL of the virtual host.}
+        lbHost: {type: string, default: null, description: The load balancer host required to do CNAME mapping for custom domain.}
+      title: VirtualHostRequest
+    apimgmtconfiguration.VirtualHostRequest-create-update-delete:
+      type: object
+      required: [virtualHostUrl, operation, virtualHostId]
+      properties:
+        isClientAuthEnabled: {type: boolean, default: false, description: Indicates  whether client authentication is enabled for the virtual host request.}
+        isDefaultVirtualHostRequest: {type: boolean, default: false, description: Indicates whether the virtual host request is the default virtual host request.}
+        isForCustomDomain: {type: boolean, default: false, description: Indicates whether the virtual host request is for a custom domain.}
+        keyStoreAlias: {type: string, default: null, maxLength: 256, description: The alias of the key store used for the virtual host request.}
+        keyStoreName: {type: string, default: null, maxLength: 256, description: The name of the key store used for the virtual host request.}
+        operation: {type: string, maxLength: 20, description: The operation performed on the virtual host request.Allowed values are CREATE or UPDATE or DELETE}
+        trustStore: {type: string, default: null, maxLength: 256, description: The trust store used for the virtual host request.}
+        virtualHostUrl: {type: string, maxLength: 2048, description: The URL of the virtual host.This field is mandatory when operation is CREATE}
+        virtualHostId: {type: string, maxLength: 36, description: The unique identifier of the virtual host.This field is mandatory when operation is UPDATE or DELETE}
+      title: VirtualHostRequest - CREATE-UPDATE-DELETE
+    odata.error:
+      type: object
+      properties:
+        error: {$ref: '#/components/schemas/odata.error.main'}
+    odata.error.main:
+      type: object
+      properties:
+        code: {type: string}
+        message: {$ref: '#/components/schemas/odata.error.message'}
+        innererror: {description: The contents of this object are service-defined}
+    odata.error.message:
+      type: object
+      properties:
+        lang: {type: string}
+        value: {type: string}
+    apimgmtconfiguration.History:
+      type: object
+      properties:
+        changed_at: {type: string, default: 'null', example: /Date(1710311576000)/}
+        changed_by: {type: string, default: 'null', maxLength: 255}
+        created_at: {type: string, default: 'null', example: /Date(1710311576000)/}
+        created_by: {type: string, default: 'null', maxLength: 255}
+      title: History
+  responses:
+    error:
+      description: Default error response
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/odata.error'}

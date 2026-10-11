@@ -1,0 +1,258 @@
+openapi: 3.0.0
+info: {title: API Portal - CertificateStoreReference (CF), description: 'This API allows you to create and manage CertificateStoreReferences. To use this API, ensure that the role APIPortal.Administrator is assigned to you.', version: '1.0', x-targetEndpoint: 'https://us10trialapiportal.cfapps.us10.hana.ondemand.com/apiportal/api/1.0/Management.svc/'}
+x-sap-shortText: Enables you to create,update and view CertificateStoreReferences.
+x-sap-api-type: ODATA
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/docs/integration-suite/sap-integration-suite/configuring-references-to-keystore-and-truststore?locale=en-US&state=DRAFT&version=DEV&q=certificateStoreReference'}
+servers:
+- {url: 'https://sandbox.api.sap.com/sapapimanagement/apiportal/Management.svc', description: API Portal Sandbox API endpoint}
+- url: https://{apiportal-url}/apiportal/api/1.0/Management.svc
+  description: API Portal API endpoint
+  variables:
+    apiportal-url: {description: API Portal API endpoint, default: ''}
+tags:
+- {name: CertificateStoreReferences}
+paths:
+  /CertificateStoreReferences:
+    get:
+      summary: Entities from CertificateStoreReferences
+      description: Returns all the CertificateStoreReferences for the tenant.
+      tags: [CertificateStoreReferences]
+      parameters:
+      - name: $orderby
+        in: query
+        description: Order items by property values
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          id: {value: id}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          allocationStatus: {value: allocationStatus}
+      responses:
+        '200':
+          description: Retrieved all the CertificateStoreReferences entities
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Collection of CertificateStoreReferences
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/components/schemas/apimgmtconfiguration.CertificateStoreReference'}
+        default: {$ref: '#/components/responses/error'}
+    post:
+      summary: Create CertificateStoreReference Entity
+      description: Create CertificateStoreReference
+      tags: [CertificateStoreReferences]
+      requestBody:
+        description: Create New entity
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/apimgmtconfiguration.CertificateStoreReference-create'}
+      responses:
+        '201':
+          description: Created entity
+          content:
+            application/json:
+              schema: {title: Created CertificateStoreReference, $ref: '#/components/schemas/apimgmtconfiguration.CertificateStoreReference'}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        default: {$ref: '#/components/responses/error'}
+  /CertificateStoreReferences('{name}'):
+    get:
+      summary: Entity from CertificateStoreReference
+      description: Returns the CertificateStoreReference entity by key
+      tags: [CertificateStoreReferences]
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: 'key: name'
+        schema: {type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        schema:
+          type: array
+          items: {type: string}
+        examples:
+          life_cycle: {value: life_cycle}
+          allocationStatus: {value: allocationStatus}
+      responses:
+        '200':
+          description: CertificateStoreReference Entity
+          content:
+            application/json:
+              schema: {type: object, title: CertificateStoreReference Entity, $ref: '#/components/schemas/apimgmtconfiguration.CertificateStoreReference'}
+        default: {$ref: '#/components/responses/error'}
+    put:
+      summary: Update CertificateStoreReference Entity
+      description: Update CertificateStoreReference
+      tags: [CertificateStoreReferences]
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: 'key: name'
+        schema: {type: string}
+      requestBody:
+        description: Update Existing entity
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/apimgmtconfiguration.CertificateStoreReference-update'}
+      responses:
+        '204': {description: Created entity}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/odata.error'}
+        default: {$ref: '#/components/responses/error'}
+    delete:
+      summary: Delete CertificateStoreReference Entity
+      description: delete CertificateStoreReference
+      tags: [CertificateStoreReferences]
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: 'key: name'
+        schema: {type: string}
+      responses:
+        '204': {description: CertificateStoreReference Entity}
+        default: {$ref: '#/components/responses/error'}
+components:
+  securitySchemes:
+    OAuth2_ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+          scopes: {}
+  parameters:
+    top:
+      name: $top
+      in: query
+      description: Show only the first n items
+      schema: {type: integer}
+    skip:
+      name: $skip
+      in: query
+      description: Skip the first n items
+      schema: {type: integer}
+    count:
+      name: $count
+      in: query
+      description: Include count of items
+      schema: {type: boolean}
+    filter:
+      name: $filter
+      in: query
+      description: Filter items by property values
+      schema: {type: string}
+    search:
+      name: $search
+      in: query
+      description: Search items by search phrases
+      schema: {type: string}
+    orderby:
+      name: $orderby
+      in: query
+      description: Order items by property values
+      schema:
+        type: array
+        items: {type: string}
+    select:
+      name: $select
+      in: query
+      description: Select properties to be returned
+      schema:
+        type: array
+        items: {type: string}
+  schemas:
+    apimgmtconfiguration.CertificateStoreReference:
+      type: object
+      properties:
+        name: {type: string, maxLength: 255, description: The name of the CertificateStoreReference.}
+        certificateStoreName: {type: string, maxLength: 200, description: The name of keyStore or TrustStore.}
+        storeType: {type: string, maxLength: 20, description: Defines the certificateStore type KEY STORE or TRUST STORE.}
+        life_cycle:
+          allOf:
+          - {$ref: '#/components/schemas/apimgmtconfiguration.History'}
+      title: CertificateStoreReference
+    apimgmtconfiguration.CertificateStoreReference-create:
+      type: object
+      required: [name, certificateStoreName]
+      properties:
+        name: {type: string, maxLength: 255, description: The name of the CertificateStoreReference.}
+        certificateStoreName: {type: string, maxLength: 200, description: The name of keyStore or TrustStore.}
+      title: CertificateStoreReference - CREATE
+    apimgmtconfiguration.CertificateStoreReference-update:
+      type: object
+      required: [certificateStoreName]
+      properties:
+        certificateStoreName: {type: string, maxLength: 200, description: The name of keyStore or TrustStore.}
+      title: CertificateStoreReference - UPDATE
+    odata.error:
+      type: object
+      properties:
+        error: {$ref: '#/components/schemas/odata.error.main'}
+    odata.error.main:
+      type: object
+      properties:
+        code: {type: string}
+        message: {$ref: '#/components/schemas/odata.error.message'}
+        innererror: {description: The contents of this object are service-defined}
+    odata.error.message:
+      type: object
+      properties:
+        lang: {type: string}
+        value: {type: string}
+    apimgmtconfiguration.History:
+      type: object
+      properties:
+        changed_at: {type: string, default: 'null', example: /Date(1710311576000)/}
+        changed_by: {type: string, default: 'null', maxLength: 255}
+        created_at: {type: string, default: 'null', example: /Date(1710311576000)/}
+        created_by: {type: string, default: 'null', maxLength: 255}
+      title: History
+  responses:
+    error:
+      description: Default error response
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/odata.error'}

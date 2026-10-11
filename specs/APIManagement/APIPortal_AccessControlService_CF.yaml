@@ -1,0 +1,189 @@
+x-odata-version: '4.0'
+swagger: '2.0'
+info: {title: API Portal - Access Control Service (CF), description: 'API Portal Access Control Service enables you to view and create rules. These rules provide the required permissions to users for accessing a product in the API Business Hub Enterprise.To be able to use this API, ensure that You are assigned the admin role', version: '1.0', x-targetEndpoint: 'https://us10trialapiportal.cfapps.us10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc/'}
+securityDefinitions:
+  OAuth2_ClientCredentials:
+    type: oauth2
+    flow: application
+    tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+    scopes: {}
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/viewer/66d066d903c2473f81ec33acfe2ccdb4/Cloud/en-US/7d8514b4ab46455e8416723003b414d7.html'}
+x-sap-api-type: ODATA
+host: sandbox.api.sap.com
+schemes: [https]
+x-sap-shortText: Enables you to view and create rules for assigning access permissions to a product.
+basePath: /sapapimanagement/apiportal/AccessControl.svc
+x-servers:
+- url: https://eu20apiportal.cfapps.eu20.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal EU20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal EU20 tokenUrl}
+- url: https://us20apiportal.cfapps.us20.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal US20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal US20 tokenUrl}
+- url: https://jp20apiportal.cfapps.jp20.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal jp20 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal jp20 tokenUrl}
+- url: https://ap21apiportal.cfapps.ap21.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal ap21 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap21 tokenUrl}
+- url: https://us21apiportal.cfapps.us21.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal us21 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal us21 tokenUrl}
+- url: https://ap10apiportal.cfapps.ap10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal ap10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap10 tokenUrl}
+- url: https://br10apiportal.cfapps.br10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal br10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal br10 tokenUrl}
+- url: https://jp10apiportal.cfapps.jp10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal jp10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal jp10 tokenUrl}
+- url: https://eu10apiportal.cfapps.eu10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal eu10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal eu10 tokenUrl}
+- url: https://us10apiportal.cfapps.us10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal us10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal us10 tokenUrl}
+- url: https://ca10apiportal.cfapps.ca10.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal ca10 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ca10 tokenUrl}
+- url: https://ap11apiportal.cfapps.ap11.hana.ondemand.com/apiportal/api/1.0/AccessControl.svc
+  description: API Portal ap11 API endpoint
+  templates:
+    tokenUrl: {description: SAP API Management API Portal ap11 tokenUrl}
+consumes: [application/json]
+produces: [application/json]
+tags:
+- {name: AccessControl}
+definitions:
+  odata.error:
+    type: object
+    properties:
+      error: {$ref: '#/definitions/odata.error.main'}
+  odata.error.main:
+    type: object
+    properties:
+      code: {type: string}
+      message: {$ref: '#/definitions/odata.error.message'}
+      innererror: {description: The contents of this object are service-defined}
+  odata.error.message:
+    type: object
+    properties:
+      lang: {type: string}
+      value: {type: string}
+  acl.Rule:
+    type: object
+    properties:
+      ruleId: {type: string, maxLength: 255}
+      entityId: {type: string, maxLength: 255}
+      actor: {$ref: '#/definitions/acl.Actor'}
+      action: {type: string, maxLength: 255}
+    title: ACLRule
+  acl.Actor:
+    type: object
+    properties:
+      name: {type: string, maxLength: 255}
+      type: {type: string, maxLength: 255}
+    title: ACLActor
+x-schemas:
+  Org.OData.Core.V1: {uri: 'http://localhost/examples/Org.OData.Core.V1.openapi.json'}
+  Core: {aliasFor: Org.OData.Core.V1}
+  apiportal: {}
+x-entityContainer:
+  name: apiportalContainer
+  resources: {}
+paths:
+  /Rules:
+    get:
+      summary: Get all available rules.
+      description: This operation lists all the rules available in access control list.
+      tags: [Rules]
+      parameters:
+      - {$ref: '#/parameters/filter'}
+      responses:
+        '200':
+          description: Retrieved rules
+          schema:
+            type: object
+            title: Wrapper
+            properties:
+              d:
+                type: object
+                title: Collection of ACL Rules
+                properties:
+                  results:
+                    type: array
+                    items: {$ref: '#/definitions/acl.Rule'}
+        default: {$ref: '#/responses/error'}
+    post:
+      summary: Create a rule
+      description: Create a new rule for a specific product. Specify the product name in the entity Id field. Supported action types are Discover and Subscription.
+      tags: [Rules]
+      parameters:
+      - name: ACLRule
+        in: body
+        description: New rule
+        required: true
+        schema: {$ref: '#/definitions/acl.Rule'}
+      responses:
+        '201':
+          description: Created entity
+          schema:
+            title: Created APIProduct
+            type: object
+            properties:
+              d: {$ref: '#/definitions/acl.Rule'}
+        '400':
+          description: Bad Request
+          schema: {$ref: '#/definitions/odata.error'}
+        '415':
+          description: Unsupported Media Type
+          schema: {$ref: '#/definitions/odata.error'}
+        '500':
+          description: Internal Server Error
+          schema: {$ref: '#/definitions/odata.error'}
+        default: {$ref: '#/responses/error'}
+  /Rules('{ruleId}'):
+    get:
+      summary: Get a specific rule from ACL by key.
+      description: Returns the rule with the key from ACL.
+      tags: [Rules]
+      parameters:
+      - {name: ruleId, in: path, required: true, description: 'key: rule ID', type: string}
+      responses:
+        '200':
+          description: Retrieved entity
+          schema:
+            title: APIProduct
+            type: object
+            properties:
+              d: {$ref: '#/definitions/acl.Rule'}
+        default: {$ref: '#/responses/error'}
+    delete:
+      summary: Delete a specific rule.
+      description: This operation deletes a specifc rule identified using the ruleid.
+      tags: [Rules]
+      parameters:
+      - {name: ruleId, in: path, required: true, description: 'key: rule ID', type: string}
+      responses:
+        '204': {description: Success}
+        default: {$ref: '#/responses/error'}
+parameters:
+  filter: {name: $filter, in: query, description: Filter items by property values, type: string}
+responses:
+  error:
+    description: Error
+    schema: {$ref: '#/definitions/odata.error'}

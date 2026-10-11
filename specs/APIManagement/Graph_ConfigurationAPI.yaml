@@ -1,0 +1,870 @@
+openapi: 3.0.2
+info: {title: API Composition - Configuration, description: 'A business data graph is a connected graph of all your business data. Whether you need to create, update, or delete business data graphs, this API provides an automated option to achieve these tasks.', version: '1.0'}
+x-sap-api-type: ODATAV4
+x-odata-version: '4.01'
+x-sap-shortText: Manage business data graphs automatically.
+servers:
+- url: https://{region}.graph.sap/configuration/v1/sap.graph
+  description: API Composition Configuration API
+  variables:
+    region: {description: Region, default: ''}
+tags:
+- {name: Extension, description: Configuration that extends a business data graph with a set of custom entity projections.}
+- {name: Graph Configuration, description: Configuration specifies a business data graph.}
+paths:
+  /$batch:
+    post:
+      summary: Sends a group of requests
+      description: |-
+        Group multiple requests into a single request payload, see [Batch Requests](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_BatchRequests).
+
+        *Please note that "Try it out" is not supported for this request.*
+      tags: [Batch Requests]
+      requestBody:
+        required: true
+        description: Batch request
+        content:
+          multipart/mixed;boundary=request-separator:
+            schema: {type: string}
+            example: |-
+              --request-separator
+              Content-Type: application/http
+              Content-Transfer-Encoding: binary
+
+              GET GraphConfiguration HTTP/1.1
+              Accept: application/json
+
+
+              --request-separator--
+      responses:
+        '200':
+          description: Batch response
+          content:
+            multipart/mixed:
+              schema: {type: string}
+              example: |-
+                --response-separator
+                Content-Type: application/http
+
+                HTTP/1.1 200 OK
+                Content-Type: application/json
+
+                {...}
+                --response-separator--
+        4XX: {$ref: '#/components/responses/error'}
+  /Extension:
+    get:
+      description: Returns a collection of extensions. Use query options such as `$filter`, `$orderby`, `$select`, `$top`, and `$skip` to refine the results.
+      summary: Retrieves a list of extension.
+      tags: [Extension]
+      parameters:
+      - {$ref: '#/components/parameters/top'}
+      - {$ref: '#/components/parameters/skip'}
+      - {$ref: '#/components/parameters/search'}
+      - name: $filter
+        description: Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)
+        in: query
+        schema: {type: string}
+      - {$ref: '#/components/parameters/count'}
+      - name: $orderby
+        description: Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)
+        in: query
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [lastModified, lastModified desc, id, id desc, name, name desc, description, description desc, files/name, files/name desc, files/content, files/content desc]
+      - name: $select
+        description: Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)
+        in: query
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [lastModified, id, name, description, files]
+      responses:
+        '200':
+          description: Retrieved extension
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Collection of Extension
+                properties:
+                  '@count': {$ref: '#/components/schemas/count'}
+                  value:
+                    type: array
+                    items: {$ref: '#/components/schemas/sap.graph.Extension'}
+        4XX: {$ref: '#/components/responses/error'}
+    post:
+      description: Adds a new extension to extend a business data graph with custom entity projections.
+      summary: Creates a single extension.
+      tags: [Extension]
+      requestBody:
+        description: Extension
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/sap.graph.Extension-create'}
+      responses:
+        '201':
+          description: Created extension
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/sap.graph.Extension'}
+        4XX: {$ref: '#/components/responses/error'}
+  /Extension('{id}'):
+    parameters:
+    - description: A unique string that identifies the extension. If the extension ID is not provided, a UUID is generated.
+      in: path
+      name: id
+      required: true
+      schema: {type: string, example: abc-xyz-123mn}
+    get:
+      description: Returns the properties of an extension identified by its unique ID. Use `$select` to limit the returned properties.
+      summary: Retrieves a single extension.
+      tags: [Extension]
+      parameters:
+      - name: $select
+        description: Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)
+        in: query
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [lastModified, id, name, description, files]
+      responses:
+        '200':
+          description: Retrieved extension
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/sap.graph.Extension'}
+        4XX: {$ref: '#/components/responses/error'}
+    patch:
+      description: Updates the properties of an extension identified by its unique ID.
+      summary: Changes a single extension.
+      tags: [Extension]
+      requestBody:
+        description: Extension
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/sap.graph.Extension-update'}
+      responses:
+        '204': {description: Success}
+        4XX: {$ref: '#/components/responses/error'}
+    delete:
+      description: Permanently removes an extension identified by its unique ID from the system.
+      summary: Deletes a single extension.
+      tags: [Extension]
+      responses:
+        '204': {description: Success}
+        4XX: {$ref: '#/components/responses/error'}
+  /GraphConfiguration:
+    post:
+      description: Adds a new graph configuration that specifies a business data graph. The `businessDataGraphIdentifier` is required and must be a short string of up to 20 lowercase alphanumeric characters and hyphen separators.
+      summary: Creates a single graph configuration.
+      tags: [Graph Configuration]
+      requestBody:
+        description: GraphConfiguration
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/sap.graph.GraphConfiguration-create'}
+      responses:
+        '201':
+          description: Created graph configuration
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/sap.graph.GraphConfiguration'}
+        4XX: {$ref: '#/components/responses/error'}
+  /GraphConfiguration('{businessDataGraphIdentifier}'):
+    parameters:
+    - description: A unique identifier that developers use in the Graph URL to access the business data graph. It must be a short string of up to 20 lowercase alphanumeric characters and hyphen separators.
+      in: path
+      name: businessDataGraphIdentifier
+      required: true
+      schema: {type: string, example: abc-xyz-123mn}
+    get:
+      description: Returns the properties of a graph configuration identified by its business data graph identifier. Use `$select` to limit the returned properties.
+      summary: Retrieves a single graph configuration.
+      tags: [Graph Configuration]
+      parameters:
+      - name: $select
+        description: Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)
+        in: query
+        explode: false
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [lastModified, businessDataGraphIdentifier, schemaVersion, description, graphModelVersion, effectiveGraphModelVersion, exclude, dataSources, locatingPolicy, statusDetails, logMessages, extensions, status]
+      responses:
+        '200':
+          description: Retrieved graph configuration
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/sap.graph.GraphConfiguration'}
+        4XX: {$ref: '#/components/responses/error'}
+    patch:
+      description: Updates the properties of a graph configuration identified by its business data graph identifier. Only the provided fields are modified.
+      summary: Changes a single graph configuration.
+      tags: [Graph Configuration]
+      requestBody:
+        description: GraphConfiguration
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/sap.graph.GraphConfiguration-update'}
+      responses:
+        '204': {description: Success}
+        4XX: {$ref: '#/components/responses/error'}
+    delete:
+      description: Permanently removes a graph configuration identified by its business data graph identifier from the system.
+      summary: Deletes a single graph configuration.
+      tags: [Graph Configuration]
+      responses:
+        '204': {description: Success}
+        4XX: {$ref: '#/components/responses/error'}
+components:
+  schemas:
+    sap.graph.Cue:
+      title: Cue
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: EU, description: Name of the cue.}
+        description: {type: string, nullable: true, example: Europe}
+        values:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.CueValue'}
+      description: A short string label used to select non-default locating rules in requests.
+    sap.graph.Cue-create:
+      title: Cue (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: EU, description: Name of the cue.}
+        description: {type: string, nullable: true, example: Europe}
+        values:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.CueValue-create'}
+      description: A short string label used to select non-default locating rules in requests.
+    sap.graph.Cue-update:
+      title: Cue (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: EU, description: Name of the cue.}
+        description: {type: string, nullable: true, example: Europe}
+        values:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.CueValue-update'}
+      description: A short string label used to select non-default locating rules in requests.
+    sap.graph.CueReference:
+      title: CueReference
+      type: object
+      properties:
+        ref: {type: string, nullable: true}
+        values:
+          type: array
+          items: {type: string}
+    sap.graph.CueReference-create:
+      title: CueReference (for create)
+      type: object
+      properties:
+        ref: {type: string, nullable: true}
+        values:
+          type: array
+          items: {type: string}
+    sap.graph.CueReference-update:
+      title: CueReference (for update)
+      type: object
+      properties:
+        ref: {type: string, nullable: true}
+        values:
+          type: array
+          items: {type: string}
+    sap.graph.CueValue:
+      title: CueValue
+      type: object
+      properties:
+        name: {type: string, nullable: true}
+        description: {type: string, nullable: true}
+    sap.graph.CueValue-create:
+      title: CueValue (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true}
+        description: {type: string, nullable: true}
+    sap.graph.CueValue-update:
+      title: CueValue (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true}
+        description: {type: string, nullable: true}
+    sap.graph.DataSource:
+      title: DataSource
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: s4, description: The data source name.}
+        namespace: {type: string, nullable: true, example: company.custom, description: The namespace for entities of custom OData services. You do not need to specify a namespace for SAP systems known by Graph.}
+        services:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSourceService'}
+          description: The services belonging to the data source.
+      description: Defines a set of services (APIs) configured as destinations in the landscape.
+    sap.graph.DataSource-create:
+      title: DataSource (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: s4, description: The data source name.}
+        namespace: {type: string, nullable: true, example: company.custom, description: The namespace for entities of custom OData services. You do not need to specify a namespace for SAP systems known by Graph.}
+        services:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSourceService-create'}
+          description: The services belonging to the data source.
+      description: Defines a set of services (APIs) configured as destinations in the landscape.
+    sap.graph.DataSource-update:
+      title: DataSource (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: s4, description: The data source name.}
+        namespace: {type: string, nullable: true, example: company.custom, description: The namespace for entities of custom OData services. You do not need to specify a namespace for SAP systems known by Graph.}
+        services:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSourceService-update'}
+          description: The services belonging to the data source.
+      description: Defines a set of services (APIs) configured as destinations in the landscape.
+    sap.graph.DataSourceService:
+      title: DataSourceService
+      type: object
+      properties:
+        destinationName: {type: string, nullable: true, example: s4-business-partner, description: The destination name of the service.}
+        path: {type: string, nullable: true, example: /odata/sap/API_BUSINESS_PARTNER, description: The path of the service.}
+      description: Specifies a service (API) configured as a destination in the landscape.
+    sap.graph.DataSourceService-create:
+      title: DataSourceService (for create)
+      type: object
+      properties:
+        destinationName: {type: string, nullable: true, example: s4-business-partner, description: The destination name of the service.}
+        path: {type: string, nullable: true, example: /odata/sap/API_BUSINESS_PARTNER, description: The path of the service.}
+      description: Specifies a service (API) configured as a destination in the landscape.
+    sap.graph.DataSourceService-update:
+      title: DataSourceService (for update)
+      type: object
+      properties:
+        destinationName: {type: string, nullable: true, example: s4-business-partner, description: The destination name of the service.}
+        path: {type: string, nullable: true, example: /odata/sap/API_BUSINESS_PARTNER, description: The path of the service.}
+      description: Specifies a service (API) configured as a destination in the landscape.
+    sap.graph.Extension:
+      title: Extension
+      type: object
+      properties:
+        lastModified: {type: string, format: date-time, example: '2017-04-13T15:51:04.0000000Z', nullable: true}
+        id: {type: string, example: abc-xyz-123mn, description: 'A unique string that identifies the extension. If the extension ID is not provided, a UUID is generated.'}
+        name: {type: string, nullable: true, example: my-extension, description: The name of the extension.}
+        description: {type: string, nullable: true, example: Description of the extension., description: Describes the extension.}
+        files:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionFile'}
+          description: An array of custom entity projection definitions.
+      description: Extends a business data graph with custom entity projections.
+    sap.graph.Extension-create:
+      title: Extension (for create)
+      type: object
+      properties:
+        id: {type: string, example: abc-xyz-123mn, description: 'A unique string that identifies the extension. If the extension ID is not provided, a UUID is generated.'}
+        name: {type: string, nullable: true, example: my-extension, description: The name of the extension.}
+        description: {type: string, nullable: true, example: Description of the extension., description: Describes the extension.}
+        files:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionFile-create'}
+          description: An array of custom entity projection definitions.
+      required: [id]
+      description: Extends a business data graph with custom entity projections.
+    sap.graph.Extension-update:
+      title: Extension (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: my-extension, description: The name of the extension.}
+        description: {type: string, nullable: true, example: Description of the extension., description: Describes the extension.}
+        files:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionFile-update'}
+          description: An array of custom entity projection definitions.
+      description: Extends a business data graph with custom entity projections.
+    sap.graph.ExtensionFile:
+      title: ExtensionFile
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: my-extension-file.json, description: The name of the file.}
+        content: {type: string, nullable: true, description: A custom entity projection definition serialized as JSON or JSON-C.}
+      description: Defines a custom entity projection.
+    sap.graph.ExtensionFile-create:
+      title: ExtensionFile (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: my-extension-file.json, description: The name of the file.}
+        content: {type: string, nullable: true, description: A custom entity projection definition serialized as JSON or JSON-C.}
+      description: Defines a custom entity projection.
+    sap.graph.ExtensionFile-update:
+      title: ExtensionFile (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: my-extension-file.json, description: The name of the file.}
+        content: {type: string, nullable: true, description: A custom entity projection definition serialized as JSON or JSON-C.}
+      description: Defines a custom entity projection.
+    sap.graph.ExtensionRef:
+      title: ExtensionRef
+      type: object
+      properties:
+        name: {type: string, nullable: true, description: The name of the extension provided by the user.}
+    sap.graph.ExtensionRef-create:
+      title: ExtensionRef (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true, description: The name of the extension provided by the user.}
+    sap.graph.ExtensionRef-update:
+      title: ExtensionRef (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, description: The name of the extension provided by the user.}
+    sap.graph.GraphConfiguration:
+      title: GraphConfiguration
+      type: object
+      properties:
+        lastModified: {type: string, format: date-time, example: '2017-04-13T15:51:04.0000000Z', nullable: true}
+        businessDataGraphIdentifier: {type: string, example: abc-xyz-123mn, description: A unique identifier that developers use in the Graph URL to access the business data graph. It must be a short string of up to 20 lowercase alphanumeric characters and hyphen separators.}
+        schemaVersion: {type: string, nullable: true, example: 1.2.0, description: The version of the Graph configuration object.}
+        description: {type: string, nullable: true, default: '', example: Description of the Graph configuration., description: Describes the Graph configuration.}
+        graphModelVersion: {type: string, nullable: true, example: 1.0.0, description: 'The latest version of the unified API entities of Graph. When generating the configuration, the version is set to the latest available graph model version.'}
+        effectiveGraphModelVersion: {type: string, nullable: true, example: 1.0.0, description: The Graph model version that is in use for the current Graph configuration.}
+        exclude:
+          type: array
+          items: {type: string, example: sap.s4.A_Product}
+          description: Excludes mirrored entities from the business data graph.
+        dataSources:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSource'}
+          description: Lists the services (APIs) that are configured as destinations in the landscape.
+        locatingPolicy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.LocatingPolicy'}
+          nullable: true
+          description: Provides Graph with the information to determine where requested data is located.
+        statusDetails: {type: string, nullable: true, example: 'Graph configuration processing completed successfully, deployment has been initiated.', description: Detailed information about the state of the business data graph.}
+        logMessages:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.LogMessage'}
+          description: A log that provides information, warning, and error messages from the last activation of the business data graph.
+        extensions:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionRef'}
+          description: Specifies the name of the extensions that are applied to the business data graph.
+        status:
+          type: string
+          enum: [PROCESSING, DEPLOYMENT_INITIATED, FAILED]
+          nullable: true
+          example: DEPLOYMENT_INITIATED
+          description: The state of the business data graph during design time.
+      description: Configuration specifies a business data graph.
+    sap.graph.GraphConfiguration-create:
+      title: GraphConfiguration (for create)
+      type: object
+      properties:
+        businessDataGraphIdentifier: {type: string, example: abc-xyz-123mn, description: A unique identifier that developers use in the Graph URL to access the business data graph. It must be a short string of up to 20 lowercase alphanumeric characters and hyphen separators.}
+        schemaVersion: {type: string, nullable: true, example: 1.2.0, description: The version of the Graph configuration object.}
+        description: {type: string, nullable: true, default: '', example: Description of the Graph configuration., description: Describes the Graph configuration.}
+        graphModelVersion: {type: string, nullable: true, example: 1.0.0, description: 'The latest version of the unified API entities of Graph. When generating the configuration, the version is set to the latest available graph model version.'}
+        exclude:
+          type: array
+          items: {type: string, example: sap.s4.A_Product}
+          description: Excludes mirrored entities from the business data graph.
+        dataSources:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSource-create'}
+          description: Lists the services (APIs) that are configured as destinations in the landscape.
+        locatingPolicy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.LocatingPolicy-create'}
+          nullable: true
+          description: Provides Graph with the information to determine where requested data is located.
+        extensions:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionRef-create'}
+          description: Specifies the name of the extensions that are applied to the business data graph.
+      required: [businessDataGraphIdentifier]
+      description: Configuration specifies a business data graph.
+    sap.graph.GraphConfiguration-update:
+      title: GraphConfiguration (for update)
+      type: object
+      properties:
+        schemaVersion: {type: string, nullable: true, example: 1.2.0, description: The version of the Graph configuration object.}
+        description: {type: string, nullable: true, default: '', example: Description of the Graph configuration., description: Describes the Graph configuration.}
+        graphModelVersion: {type: string, nullable: true, example: 1.0.0, description: 'The latest version of the unified API entities of Graph. When generating the configuration, the version is set to the latest available graph model version.'}
+        exclude:
+          type: array
+          items: {type: string, example: sap.s4.A_Product}
+          description: Excludes mirrored entities from the business data graph.
+        dataSources:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.DataSource-update'}
+          description: Lists the services (APIs) that are configured as destinations in the landscape.
+        locatingPolicy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.LocatingPolicy-update'}
+          nullable: true
+          description: Provides Graph with the information to determine where requested data is located.
+        extensions:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.ExtensionRef-update'}
+          description: Specifies the name of the extensions that are applied to the business data graph.
+      description: Configuration specifies a business data graph.
+    sap.graph.InterSourceForeignKey:
+      title: InterSourceForeignKey
+      type: object
+      properties:
+        cues:
+          type: array
+          items: {type: string, nullable: true, example: EU}
+          description: Optionally, restricts the foreign key to locating rules with an identical set of cues.
+        foreignKey:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification'}
+          nullable: true
+          description: Specifies a foreign key.
+        references:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification'}
+          nullable: true
+          description: Specifies a reference to the foreign key.
+      description: Defines a reference between two entities provided by different services. Technically, this defines an inclusion dependency stating that every existing list of the given attributes in the source is contained as a list of given attributes in the target.
+    sap.graph.InterSourceForeignKey-create:
+      title: InterSourceForeignKey (for create)
+      type: object
+      properties:
+        cues:
+          type: array
+          items: {type: string, nullable: true, example: EU}
+          description: Optionally, restricts the foreign key to locating rules with an identical set of cues.
+        foreignKey:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification-create'}
+          nullable: true
+          description: Specifies a foreign key.
+        references:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification-create'}
+          nullable: true
+          description: Specifies a reference to the foreign key.
+      description: Defines a reference between two entities provided by different services. Technically, this defines an inclusion dependency stating that every existing list of the given attributes in the source is contained as a list of given attributes in the target.
+    sap.graph.InterSourceForeignKey-update:
+      title: InterSourceForeignKey (for update)
+      type: object
+      properties:
+        cues:
+          type: array
+          items: {type: string, nullable: true, example: EU}
+          description: Optionally, restricts the foreign key to locating rules with an identical set of cues.
+        foreignKey:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification-update'}
+          nullable: true
+          description: Specifies a foreign key.
+        references:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.TupleSpecification-update'}
+          nullable: true
+          description: Specifies a reference to the foreign key.
+      description: Defines a reference between two entities provided by different services. Technically, this defines an inclusion dependency stating that every existing list of the given attributes in the source is contained as a list of given attributes in the target.
+    sap.graph.KeyMappingDecoratorStrategy:
+      title: KeyMappingDecoratorStrategy
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [format]
+          nullable: true
+          example: format
+          description: Name of the strategy.
+        match: {type: string, nullable: true, example: '0{4}(?<category>.{5}).(?<num>[+ 0-9]{3})$', description: Specific to strategy "format". A regular expression to extract the parts of the attribute value. Use named capturing groups to identify each part.}
+        replace: {type: string, nullable: true, example: $<category>_$<num>, description: Specific to strategy "format". A pattern of the referenced attribute value. Use $<name> to reference the values of the capturing groups used in match (keep < and >). Every name used in replace must occur in match.}
+      description: Strategy defining a bi-directional transformation of key values.
+    sap.graph.KeyMappingDecoratorStrategy-create:
+      title: KeyMappingDecoratorStrategy (for create)
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [format]
+          nullable: true
+          example: format
+          description: Name of the strategy.
+        match: {type: string, nullable: true, example: '0{4}(?<category>.{5}).(?<num>[+ 0-9]{3})$', description: Specific to strategy "format". A regular expression to extract the parts of the attribute value. Use named capturing groups to identify each part.}
+        replace: {type: string, nullable: true, example: $<category>_$<num>, description: Specific to strategy "format". A pattern of the referenced attribute value. Use $<name> to reference the values of the capturing groups used in match (keep < and >). Every name used in replace must occur in match.}
+      description: Strategy defining a bi-directional transformation of key values.
+    sap.graph.KeyMappingDecoratorStrategy-update:
+      title: KeyMappingDecoratorStrategy (for update)
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [format]
+          nullable: true
+          example: format
+          description: Name of the strategy.
+        match: {type: string, nullable: true, example: '0{4}(?<category>.{5}).(?<num>[+ 0-9]{3})$', description: Specific to strategy "format". A regular expression to extract the parts of the attribute value. Use named capturing groups to identify each part.}
+        replace: {type: string, nullable: true, example: $<category>_$<num>, description: Specific to strategy "format". A pattern of the referenced attribute value. Use $<name> to reference the values of the capturing groups used in match (keep < and >). Every name used in replace must occur in match.}
+      description: Strategy defining a bi-directional transformation of key values.
+    sap.graph.LocatingPolicy:
+      title: LocatingPolicy
+      type: object
+      properties:
+        description: {type: string, nullable: true, default: '', example: Description of the locating policy., description: Describes the locating policy.}
+        cues:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.Cue'}
+          description: Specifies OData query options used to select a subset of locating rules that are not the default ones.
+        keyMapping:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.InterSourceForeignKey'}
+          description: A set of intersource foreign key definitions. That is, foreign keys that cross the boundary between two services.
+        rules:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.LocatingPolicyRule'}
+          description: Describes the location of the data for specific entity types.
+      description: Provides Graph with the information to determine where requested data is located.
+    sap.graph.LocatingPolicy-create:
+      title: LocatingPolicy (for create)
+      type: object
+      properties:
+        description: {type: string, nullable: true, default: '', example: Description of the locating policy., description: Describes the locating policy.}
+        cues:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.Cue-create'}
+          description: Specifies OData query options used to select a subset of locating rules that are not the default ones.
+        keyMapping:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.InterSourceForeignKey-create'}
+          description: A set of intersource foreign key definitions. That is, foreign keys that cross the boundary between two services.
+        rules:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.LocatingPolicyRule-create'}
+          description: Describes the location of the data for specific entity types.
+      description: Provides Graph with the information to determine where requested data is located.
+    sap.graph.LocatingPolicy-update:
+      title: LocatingPolicy (for update)
+      type: object
+      properties:
+        description: {type: string, nullable: true, default: '', example: Description of the locating policy., description: Describes the locating policy.}
+        cues:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.Cue-update'}
+          description: Specifies OData query options used to select a subset of locating rules that are not the default ones.
+        keyMapping:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.InterSourceForeignKey-update'}
+          description: A set of intersource foreign key definitions. That is, foreign keys that cross the boundary between two services.
+        rules:
+          type: array
+          items: {$ref: '#/components/schemas/sap.graph.LocatingPolicyRule-update'}
+          description: Describes the location of the data for specific entity types.
+      description: Provides Graph with the information to determine where requested data is located.
+    sap.graph.LocatingPolicyRule:
+      title: LocatingPolicyRule
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: sap.s4.A_Product, description: 'Entity name, including a namespace, that the rule applies to. An asterisk * (wildcard) applies to all the entities in this namespace.'}
+        leading: {type: string, nullable: true, example: s4, description: Name of the data source that is the leading system for this entity. The leading system is considered the default source of truth for a given entity.}
+        local:
+          type: array
+          items: {type: string, example: s4_2}
+          description: List of data sources, where key-based references to this entity are treated as local references, overriding the leading system.
+        cue:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.CueReference'}
+          nullable: true
+        cues:
+          type: array
+          items: {type: string, example: EU}
+          description: Optionally, specifies OData query options used to select a subset of locating rules that are not the default ones. The associated cues must exist in the locating policy cues array.
+        sourceEntity: {type: string, nullable: true, example: company.custom.CustomProduct, description: The full name of the mirrored source entity for which the rule applies. It is only applicable to composite custom entities.}
+      description: Describes the location of data of a specific entity type.
+    sap.graph.LocatingPolicyRule-create:
+      title: LocatingPolicyRule (for create)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: sap.s4.A_Product, description: 'Entity name, including a namespace, that the rule applies to. An asterisk * (wildcard) applies to all the entities in this namespace.'}
+        leading: {type: string, nullable: true, example: s4, description: Name of the data source that is the leading system for this entity. The leading system is considered the default source of truth for a given entity.}
+        local:
+          type: array
+          items: {type: string, example: s4_2}
+          description: List of data sources, where key-based references to this entity are treated as local references, overriding the leading system.
+        cue:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.CueReference-create'}
+          nullable: true
+        cues:
+          type: array
+          items: {type: string, example: EU}
+          description: Optionally, specifies OData query options used to select a subset of locating rules that are not the default ones. The associated cues must exist in the locating policy cues array.
+        sourceEntity: {type: string, nullable: true, example: company.custom.CustomProduct, description: The full name of the mirrored source entity for which the rule applies. It is only applicable to composite custom entities.}
+      description: Describes the location of data of a specific entity type.
+    sap.graph.LocatingPolicyRule-update:
+      title: LocatingPolicyRule (for update)
+      type: object
+      properties:
+        name: {type: string, nullable: true, example: sap.s4.A_Product, description: 'Entity name, including a namespace, that the rule applies to. An asterisk * (wildcard) applies to all the entities in this namespace.'}
+        leading: {type: string, nullable: true, example: s4, description: Name of the data source that is the leading system for this entity. The leading system is considered the default source of truth for a given entity.}
+        local:
+          type: array
+          items: {type: string, example: s4_2}
+          description: List of data sources, where key-based references to this entity are treated as local references, overriding the leading system.
+        cue:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.CueReference-update'}
+          nullable: true
+        cues:
+          type: array
+          items: {type: string, example: EU}
+          description: Optionally, specifies OData query options used to select a subset of locating rules that are not the default ones. The associated cues must exist in the locating policy cues array.
+        sourceEntity: {type: string, nullable: true, example: company.custom.CustomProduct, description: The full name of the mirrored source entity for which the rule applies. It is only applicable to composite custom entities.}
+      description: Describes the location of data of a specific entity type.
+    sap.graph.LogMessage:
+      title: LogMessage
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [INFO, WARNING, ERROR]
+          nullable: true
+        message: {type: string, nullable: true}
+        code: {type: string, nullable: true, example: '1000', description: A unique code for error messages in the log.}
+    sap.graph.TupleSpecification:
+      title: TupleSpecification
+      type: object
+      properties:
+        dataSource: {type: string, nullable: true, example: s4, description: Name of the data source.}
+        entityName: {type: string, nullable: true, example: sap.s4.A_Product, description: Fully qualified name of the entity.}
+        attributes:
+          type: array
+          items: {type: string, example: Product}
+          description: An ordered list of attributes identifying the entity in the other data source.
+        strategy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.KeyMappingDecoratorStrategy'}
+          nullable: true
+          description: Defines a strategy to convert key values if the relationship between the foreign key and its reference does not have the same format.
+      description: Specifies a tuple of attributes of a given entity and data source.
+    sap.graph.TupleSpecification-create:
+      title: TupleSpecification (for create)
+      type: object
+      properties:
+        dataSource: {type: string, nullable: true, example: s4, description: Name of the data source.}
+        entityName: {type: string, nullable: true, example: sap.s4.A_Product, description: Fully qualified name of the entity.}
+        attributes:
+          type: array
+          items: {type: string, example: Product}
+          description: An ordered list of attributes identifying the entity in the other data source.
+        strategy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.KeyMappingDecoratorStrategy-create'}
+          nullable: true
+          description: Defines a strategy to convert key values if the relationship between the foreign key and its reference does not have the same format.
+      description: Specifies a tuple of attributes of a given entity and data source.
+    sap.graph.TupleSpecification-update:
+      title: TupleSpecification (for update)
+      type: object
+      properties:
+        dataSource: {type: string, nullable: true, example: s4, description: Name of the data source.}
+        entityName: {type: string, nullable: true, example: sap.s4.A_Product, description: Fully qualified name of the entity.}
+        attributes:
+          type: array
+          items: {type: string, example: Product}
+          description: An ordered list of attributes identifying the entity in the other data source.
+        strategy:
+          allOf:
+          - {$ref: '#/components/schemas/sap.graph.KeyMappingDecoratorStrategy-update'}
+          nullable: true
+          description: Defines a strategy to convert key values if the relationship between the foreign key and its reference does not have the same format.
+      description: Specifies a tuple of attributes of a given entity and data source.
+    count:
+      anyOf:
+      - {type: number}
+      - {type: string}
+      description: The number of entities in the collection. Available when using the [$count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount) query option.
+    error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            target: {type: string}
+            details:
+              type: array
+              items:
+                type: object
+                required: [code, message]
+                properties:
+                  code: {type: string}
+                  message: {type: string}
+                  target: {type: string}
+            innererror: {type: object, description: The structure of this object is service-specific}
+  parameters:
+    top:
+      name: $top
+      in: query
+      description: Show only the first n items, see [Paging - Top](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptiontop)
+      schema: {type: integer, minimum: 0}
+      example: 50
+    skip:
+      name: $skip
+      in: query
+      description: Skip the first n items, see [Paging - Skip](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionskip)
+      schema: {type: integer, minimum: 0}
+    count:
+      name: $count
+      in: query
+      description: Include count of items, see [Count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount)
+      schema: {type: boolean}
+    search:
+      name: $search
+      in: query
+      description: Search items by search phrases, see [Searching](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionsearch)
+      schema: {type: string}
+  responses:
+    error:
+      description: Error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/error'}
+  securitySchemes:
+    OAuth2_ClientCredentials:
+      description: Authentication via OAuth2 with client credentials flow
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+          scopes: {config: Configuration API access.}
+    OAuth2_AuthorizationCode:
+      description: Authentication via OAuth2 with authorization code flow
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/api/oauth/dialog
+          tokenUrl: https://example.com/api/oauth/token
+          refreshUrl: https://example.com/api/oauth/refresh
+          scopes: {config: Configuration API access.}
+security:
+- OAuth2_ClientCredentials: []
+- OAuth2_AuthorizationCode: []
+externalDocs: {description: Manage Business Data Graphs using the API Composition Configuration API, url: 'https://help.sap.com/docs/graph/graph/manage-business-data-graphs-using-graph-configuration-api'}

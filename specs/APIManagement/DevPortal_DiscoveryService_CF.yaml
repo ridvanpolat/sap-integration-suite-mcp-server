@@ -1,0 +1,410 @@
+x-odata-version: '4.0'
+swagger: '2.0'
+info: {title: Developer Hub - Discovery Service (CF), description: 'API Discovery services enable the automatic discovery of APIs and the associated machine readable API definitions, which allows the client consumption libraries both from SAP and Third Party to identify the right APIs to quickly prototype and build applications', version: '1.0', x-targetEndpoint: 'https://us10trialdevportal.cfapps.us10.hana.ondemand.com/apidiscovery/v1'}
+securityDefinitions:
+  OAuth2_ClientCredentials:
+    type: oauth2
+    flow: application
+    tokenUrl: https://{tokenUrl}/oauth/token?grant_type=client_credentials
+    scopes: {}
+security:
+- OAuth2_ClientCredentials: []
+externalDocs: {description: Business Documentation, url: 'https://help.sap.com/viewer/66d066d903c2473f81ec33acfe2ccdb4/Cloud/en-US/5cb804c4913543a8855225f88c26af83.html'}
+x-sap-api-type: ODATA
+host: sandbox.api.sap.com
+schemes: [https]
+x-sap-shortText: Enables you to identify the right API to quickly prototype and build applications.
+basePath: /sapapimanagement/apidiscovery/v1
+x-servers:
+- url: https://eu20devportal.cfapps.eu20.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub US1 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub US1 tokenUrl}
+- url: https://us20devportal.cfapps.us20.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub US20 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub US20 tokenUrl}
+- url: https://jp20devportal.cfapps.jp20.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub jp20 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub jp20 tokenUrl}
+- url: https://ap21devportal.cfapps.ap21.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub ap21 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap21 tokenUrl}
+- url: https://us21apiportal.cfapps.us21.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub us21 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub us21 tokenUrl}
+- url: https://ap10devportal.cfapps.ap10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub ap10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap10 tokenUrl}
+- url: https://br10devportal.cfapps.br10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub br10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub br10 tokenUrl}
+- url: https://jp10devportal.cfapps.jp10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub jp10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub jp10 tokenUrl}
+- url: https://eu10devportal.cfapps.eu10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub eu10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub eu10 tokenUrl}
+- url: https://us10devportal.cfapps.us10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub us10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub us10 tokenUrl}
+- url: https://ca10devportal.cfapps.ca10.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub ca10 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ca10 tokenUrl}
+- url: https://ap11devportal.cfapps.ap11.hana.ondemand.com/apidiscovery/v1
+  description: Developer Hub ap11 API endpoint
+  templates:
+    tokenUrl: {description: Developer Hub ap11 tokenUrl}
+consumes: [application/json]
+produces: [application/json]
+paths:
+  /apipackages:
+    get:
+      summary: Get all the API packages
+      description: Lists all the packages available in the Developer Hub
+      tags: [Packages]
+      parameters:
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/filter'}
+      - {$ref: '#/parameters/search'}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [name, title, summary, description, version, aggregrateRating, termsOfService, license, logo, image, url, lastUpdated, isSAPContent, provider, tags]
+      - name: $expand
+        in: query
+        description: Expand related APIs and Actions
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [apis, actions]
+      responses:
+        '200':
+          description: Package Entity
+          schema: {$ref: '#/definitions/APIPackage'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '404': {$ref: '#/responses/404'}
+        '500': {$ref: '#/responses/500'}
+  /apipackages('{name}'):
+    get:
+      summary: Get API Package by name
+      description: Lists a specific package available in Developer Hub by providing the package name as the parameter.
+      tags: [Packages]
+      parameters:
+      - {name: name, in: path, required: true, description: Package name, type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [name, title, summary, description, version, aggregrateRating, termsOfService, license, logo, image, url, lastUpdated, isSAPContent, provider, tags]
+      - name: $expand
+        in: query
+        description: Expand related APIs and Actions
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [apis, actions]
+      responses:
+        '200':
+          description: Package Entity
+          schema: {$ref: '#/definitions/APIPackage'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '404': {$ref: '#/responses/404'}
+        '500': {$ref: '#/responses/500'}
+  /apis:
+    get:
+      summary: Get all the APIs
+      description: Lists all the APIs available in the Developer Hub
+      tags: [APIs]
+      parameters:
+      - {$ref: '#/parameters/top'}
+      - {$ref: '#/parameters/skip'}
+      - {$ref: '#/parameters/filter'}
+      - {$ref: '#/parameters/search'}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [name, title, summary, description, version, documentation, logo, image, url, deprecated, releaseStatus, protocol]
+      - name: $expand
+        in: query
+        description: Expand related API Packages and Actions
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [apiPackages, actions]
+      responses:
+        '200':
+          description: List of APIs
+          schema:
+            type: object
+            properties:
+              value:
+                type: array
+                items: {$ref: '#/definitions/API'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '404': {$ref: '#/responses/404'}
+        '500': {$ref: '#/responses/500'}
+        '501': {$ref: '#/responses/501'}
+  /apis('{name}'):
+    get:
+      summary: Get API by name
+      description: Lists a specific API available in Developer Hub, by providing the API name as the parameter.
+      tags: [APIs]
+      parameters:
+      - {name: name, in: path, required: true, description: API name, type: string}
+      - name: $select
+        in: query
+        description: Select properties to be returned
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [name, title, summary, description, version, documentation, logo, image, url, deprecated, releaseStatus, protocol]
+      - name: $expand
+        in: query
+        description: Expand related API Packages and Actions
+        uniqueItems: true
+        type: array
+        items:
+          type: string
+          enum: [apiPackages, actions]
+      responses:
+        '200':
+          description: API Entity
+          schema: {$ref: '#/definitions/API'}
+        '400': {$ref: '#/responses/400'}
+        '401': {$ref: '#/responses/401'}
+        '404': {$ref: '#/responses/404'}
+        '500': {$ref: '#/responses/500'}
+parameters:
+  top: {name: $top, in: query, description: 'Show only the first N elements, where N is a positive integar. If a value less than 0 is specified, the URI should be considered malformed.', type: integer, minimum: 0}
+  skip: {name: $skip, in: query, description: 'Skip the first N elements, where N is a positive integer as specified by this query option. If a value less than 0 is specified, the URI should be considered malformed.', type: integer, minimum: 0}
+  filter: {name: $filter, in: query, description: Filter items by property values. Supported operations are eq and substring, type: string}
+  search: {name: $search, in: query, description: Free text search on selected name., type: string}
+definitions:
+  API:
+    type: object
+    title: API Entity
+    properties:
+      name: {type: string, title: Name of the API and the identifier field., example: API_RFQ_PROCESS_SRV}
+      title: {type: string, title: Title of the API., example: Process Request for Quotation}
+      summary: {type: string, title: A short summary of the API that can be used in the list/tile view., example: This service enables you to create Request for Quotation (RFQ) through an API call from a source system outside SAP S/4HANA or SAP S/4HANA on- Premise.}
+      description: {type: string, title: A description of the API., example: 'This service enables you to create Request for Quotation (RFQ) through an API call from a source system outside SAP S/4HANA or SAP S/4HANA on- Premise. Furthermore, the service enables you to read existing Request for Quotation data from the SAP S/4HANA or SAP S/4HANA on-Premise.'}
+      version: {type: string, title: Version of the API, example: 1}
+      documentation: {type: string, format: uri, title: Further documentation describing the API in more detail.}
+      logo: {type: string, format: uri, title: Link to an associated API logo.}
+      image: {type: string, format: uri, title: Link to the API image}
+      url: {type: string, format: uri, title: 'URL of the item, e.g., link to the package page in SAP API Business Hub / SAP API Management'}
+      lastUpdated: {type: string, title: Timestamp when the API was last updated, example: /Date(1492098664000)/}
+      deprecated: {type: boolean, title: Flag to indicate in case the API has been deprecated. Default value is false to indicate that the API has not been deprecated, default: false, example: false}
+      releaseStatus:
+        type: string
+        enum: [PUBLIC, BETA]
+        title: The release status specifies the stability of the service entity towards incompatible changes in the future for cloud related usage scenarios.  Possible values would be public, beta. The default value is public.
+        default: PUBLIC
+        example: PUBLIC
+      protocol:
+        type: string
+        title: API Protocol including the protocol version if applicable. The possible values are ODATAV2, ODATAV4, SOAP, REST. The default value is REST.
+        enum: [ODATAV2, ODATAV4, SOAP, REST]
+        default: REST
+        example: REST
+      apiDefinitions:
+        type: array
+        items: {$ref: '#/definitions/APIDefinition'}
+      entryPoints:
+        type: array
+        items: {$ref: '#/definitions/EntryPoint'}
+      actions:
+        type: array
+        items: {$ref: '#/definitions/APIAction'}
+      apipackages:
+        type: array
+        items: {$ref: '#/definitions/APIPackage'}
+  APIPackage:
+    type: object
+    title: API Package Entity
+    properties:
+      name: {type: string, title: Name of the package and the identifier field., example: SAPS4HANA}
+      title: {type: string, title: Title of the package., example: SAP S/4HANA}
+      summary: {type: string, title: A short summary of the package that can be used in the list/tile view., example: 'SAP S/4HANA, our next generation cloud ERP suite designed for in-memory computing.'}
+      description: {type: string, title: A description of the package., example: 'SAP S/4HANA, our next generation cloud ERP suite designed for in-memory computing, acts as a digital core, connecting your enterprise with people, business networks, the Internet of Things, Big Data, and more.'}
+      version: {type: string, title: Version of the package, example: 1}
+      aggregrateRating: {$ref: '#/definitions/AggregrateRating'}
+      termsOfService: {type: string, format: uri, title: Link to human-readable terms of service documentation., example: 'https://www.sap.com/corporate/en/legal/terms-of-use.html'}
+      license: {type: string, format: uri, title: Link to human-readable license documentations}
+      logo: {type: string, format: uri, title: Link to an associated package logo.}
+      image: {type: string, format: uri, title: Link to the package image}
+      url: {type: string, format: uri, title: 'URL of the item, e.g., link to the package page in SAP API Business Hub / SAP API Management'}
+      lastUpdated: {type: string, title: Timestamp when the Package was last updated, example: /Date(1492098664000)/}
+      partnerContent: {type: boolean, default: false, title: Flag to indicate if its partner content or not.}
+      provider: {$ref: '#/definitions/Organization'}
+      tags: {$ref: '#/definitions/Tag'}
+      actions:
+        type: array
+        items: {$ref: '#/definitions/PackageAction'}
+      apis:
+        type: array
+        items: {$ref: '#/definitions/API'}
+    required: [name, title, lastUpdated, apis]
+  Organization:
+    type: object
+    title: Organization Entity
+    description: The package producer or provider
+    properties:
+      name: {type: string, title: Name of the organization, example: SAP}
+      department: {type: string, title: Name of the department or team within the organization., example: S4HANA}
+      logo: {type: string, title: Link to an associated logo of the Organization, format: uri}
+      type:
+        type: string
+        enum: [self, customer, partner]
+        title: Type of the organization. Possible values are self (to indicate SAP), customer , partner
+        example: self
+    required: [name]
+  PackageAction:
+    type: object
+    title: Package Action Entity
+    description: Links to human-readable pages for Client Registrations, Payment or pricing details, Sandbox etc.
+    properties:
+      target: {type: string, format: uri, title: Indicates a UI endpoint for the action., example: 'https://accounts.sap.com/ui/public/showRegisterForm?spName=https://netweaver.ondemand.com&targetUrl=https://cloudintegration.hana.ondemand.com'}
+      description: {type: string, title: Description of the action item, example: Client Registration}
+      type:
+        type: string
+        title: Action item type. The possible values for packages are client registration, payment and sandbox
+        enum: [clientRegistration, payment, sandbox]
+        example: clientRegistration
+    required: [type, target]
+  APIAction:
+    type: object
+    title: API Action Entity
+    description: Possible actions on the API like link to the console to test the APIs
+    properties:
+      target: {type: string, format: uri, title: Indicates a UI endpoint for the action., example: 'https://api.sap.com/shell/discover/contentpackage/SAPS4HANACloud/api/API_RFQ_PROCESS_SRV?section=RESOURCE'}
+      description: {type: string, title: Description of the action item, example: Link to the API testing console}
+      type:
+        type: string
+        title: Action item type. The possible values for packages are client registration, payment and sandbox
+        enum: [console, authentications]
+        example: console
+    required: [type, target]
+  EntryPoint:
+    type: object
+    title: Entity Point entity
+    properties:
+      name: {type: string, title: Name of the entry point, example: sandboxurl}
+      type:
+        type: string
+        title: Type of the entry points. Possible values are DEV, TEST, PROD, SANDBOX
+        enum: [dev, test, production, sandbox]
+        example: sandbox
+      url: {type: string, format: uri, title: Fully qualified API endpoint or the fully qualified root Path of the API., example: 'https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_RFQ_PROCESS_SRV'}
+    required: [type, url]
+  APIDefinition:
+    type: object
+    title: API Definition Entity
+    description: Links to the machine-readable API definitions like Open API Specifications files, OData Metadata etc.
+    properties:
+      type:
+        title: Type of the API Definition
+        type: string
+        enum: [oas-yaml, oas-json, raml, edmx, wsdl]
+        example: edmx
+      url: {type: string, format: uri, title: Fully qualified endpoint to the API Definitions file., example: 'https://api.sap.com/odata/1.0/catalog.svc/APIContent.APIs(''API_RFQ_PROCESS_SRV'')/$value?type=edmx'}
+    required: [type, url]
+  Tag:
+    type: object
+    title: Tag Entity
+    properties:
+      products: {type: string, title: Comma separated list of products tags, example: SAP S/4HANA}
+      lineOfBusiness: {type: string, title: Comma separated list of line of business tags}
+      country: {type: string, title: Comma separated list of country tags}
+      keywords: {type: string, title: Comma separated list of free text style tags}
+  AggregrateRating:
+    type: object
+    title: Aggregrate Rating Entity
+    description: The average rating based on multiple ratings or reviews.
+    properties:
+      ratingValue: {type: number, title: The average rating value based on multiple ratings or reviews., example: 4.5}
+      reviewCount: {type: integer, title: Number of the review counts on which the rating value is calculated, example: 2}
+      ratingCount: {type: number, title: The count of total number of ratings.}
+    required: [ratingValue, reviewCount]
+  InnerErrorDetails:
+    type: object
+    title: Inner Error Details
+    properties:
+      code: {type: string, title: technical code of the error situation to be used for support purposes}
+      message: {type: string, title: user facing message describing the error}
+      exception: {type: string, title: Exception message details}
+    required: [code, message]
+  ErrorItem:
+    type: object
+    title: Error Item Entity
+    properties:
+      code: {type: string, title: technical code of the error situation to be used for support purposes}
+      message: {type: string, title: user facing message describing the error}
+      innererror:
+        type: object
+        title: Internal Error details
+        properties:
+          ErrorDetails:
+            type: array
+            items: {$ref: '#/definitions/InnerErrorDetails'}
+    required: [code, message]
+  Error:
+    type: object
+    title: Error Entity
+    properties:
+      error: {$ref: '#/definitions/ErrorItem'}
+responses:
+  '400':
+    description: Bad Request - Required parameters are either missing or incorrect.
+    schema: {$ref: '#/definitions/Error'}
+    examples:
+      application/json: {code: MISSING_PARAMETERS, message: Required parameters missing or incorrect.}
+  '401':
+    description: Unauthorized - Login to access the API.
+    schema: {$ref: '#/definitions/Error'}
+    examples:
+      application/json: {code: UNAUTHORIZED, message: To access API you have to login}
+  '404':
+    description: Not Found - Requested resource not found.
+    schema: {$ref: '#/definitions/Error'}
+    examples:
+      application/json: {code: RESOURCE_NOT_FOUND, message: Requested resource not found}
+  '500':
+    description: Internal server error - Try again later. If the issue persists, then contact your system administrator.
+    schema: {$ref: '#/definitions/Error'}
+    examples:
+      application/json: {code: INTERNAL_SERVER_ERROR, message: 'Internal server error, try again later. If the issue persists then contact your system administrator'}
+  '501':
+    description: Not Implemented
+    schema: {$ref: '#/definitions/Error'}
+    examples:
+      application/json: {code: FEATURE_NOT_IMPLEMENTED, message: Requested feature is not implemented.}

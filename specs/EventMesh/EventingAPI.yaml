@@ -1,0 +1,751 @@
+openapi: 3.0.1
+info: {title: Eventing, description: SAP Event Mesh in Integration Suite can be used to publish cloud events to the service with simple HTTP APIs. Also the service allows to consume cloud events by creating webhook subscriptions. The service delivers cloud events to the subscribed webhook. This makes easy use of the service without any need to manage queue or topics., version: 1.0.0}
+x-sap-shortText: Publish cloud events and consume cloud events with webhook subscriptions.
+servers:
+- url: https://{hostname}/sap-event-mesh/sap/ems/v1
+  description: Event Mesh Cloud Events API Endpoint
+  variables:
+    hostname: {default: your-event-mesh-host, description: The hostname for your Event Mesh instance. This can be found in your service key or service binding credentials.}
+tags:
+- {name: Publish Cloud Events, description: Publish cloud events}
+- {name: Webhook Subscriptions to Cloud Events, description: Consume cloud events with webhook subscriptions}
+security:
+- oAuth2: []
+paths:
+  /events:
+    post:
+      summary: Publish event to service.
+      description: Event should be cloud event, spec version 1.0 compliant and additional restrictions applied. Event can be provided in binary or structured mode. Only json event format is supported for structured mode.
+      tags: [Publish Cloud Events]
+      requestBody:
+        description: Event details.
+        required: true
+        content:
+          application/cloudevents+json:
+            schema: {$ref: '#/components/schemas/cloudEventStructured'}
+            examples:
+              cloudEventStructured: {$ref: '#/components/examples/cloudEventStructured'}
+          any-rfc-2046-media-type:
+            schema: {type: string, format: binary}
+            examples:
+              binaryCloudEvent: {$ref: '#/components/examples/binaryCloudEvent'}
+      parameters:
+      - in: header
+        name: Content-Type
+        description: Specifies if the event is published in structured or binary mode. Use application/cloudevents+json for structured mode. Use any rfc-2046 media type for binary mode.
+        schema:
+          type: string
+          enum: [application/cloudevents+json, AnyRFC2046ComplaintMediatype]
+        required: true
+      - in: header
+        name: Content-Length
+        description: Content length in bytes
+        schema: {type: number}
+        required: false
+      - in: header
+        name: ce-specversion
+        description: Specifies the cloud events version. Value MUST be 1.0. This MUST be provided when binary mode is used. In case of structured mode this header is ignored.
+        schema:
+          type: string
+          enum: ['1.0']
+        required: false
+      - in: header
+        name: ce-source
+        description: MUST be provided when binary mode is used. In case of structured mode this header is ignored.
+        schema: {$ref: '#/components/schemas/ce-source'}
+        required: false
+      - in: header
+        name: ce-type
+        description: MUST be provided when binary mode is used. In case of structured mode this header is ignored.
+        schema: {$ref: '#/components/schemas/ce-source'}
+        required: false
+      - in: header
+        name: ce-id
+        description: MUST be provided when binary mode is used. In case of structured mode this header is ignored.
+        schema: {type: string}
+      - in: header
+        name: ce-dataschema
+        description: Optional, this header is relevant only when binary mode is used. In case of structured mode this header is ignored.
+        schema: {type: string}
+      - in: header
+        name: ce-subject
+        description: Optional, this header is relevant only when binary mode is used. In case of structured mode this header is ignored.
+        schema: {type: string}
+      - in: header
+        name: ce-time
+        description: Optional, this header is relevant only when binary mode is used. In case of structured mode this header is ignored.
+        schema: {type: string}
+      - in: header
+        name: ce-{extension-attribute-name}
+        description: Optional, this header is relevant only when binary mode is used. In case of structured mode this header is ignored. Pattern for extension attribute name is ^[a-z0-9]{1,20}$
+        schema: {type: string}
+        required: false
+      - in: header
+        name: qos
+        description: Specifies quality of service. Optional, default is AT-LEAST-ONCE. With qos "AT-LEAST-ONCE" the publisher should check the response code and re-publish the events that are failed to publish.
+        schema:
+          type: string
+          enum: [AT-MOST-ONCE, AT-LEAST-ONCE]
+        required: false
+      responses:
+        '204': {description: Event published successfully.}
+        '400':
+          description: In cases invalid cloud event provided
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSpecVersion: {$ref: '#/components/examples/invalidSpecVersion'}
+                qos-invalid: {$ref: '#/components/examples/invalidQOS'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '429':
+          description: In case too many publish requests to the server
+          headers:
+            Retry-After:
+              schema: {type: integer}
+              description: Client should retry after the number of seconds specified by this header's value
+  /events/subscriptions:
+    post:
+      tags: [Webhook Subscriptions to Cloud Events]
+      summary: Create webhook subscription on one or more events.
+      description: Create webhook subscription on one or more events. Provide event source & type. You can provide blank value for source if subscription is required for all events for given type. You can provide blank value for type if subscription for all events of the given source is required. Events can be delivered to webhook in either binary or structured content mode.
+      requestBody:
+        description: Subscription details.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/subscription'}
+            examples:
+              subscription-no-auth: {$ref: '#/components/examples/subscriptionNoAuth'}
+              subscription-basic-auth: {$ref: '#/components/examples/subscriptionBasicAuth'}
+              subscription-oauth2-cc: {$ref: '#/components/examples/subscriptionOAuth2ClientCredentials'}
+              subscription-credential-ref: {$ref: '#/components/examples/subscriptionCredentialRef'}
+      parameters:
+      - in: header
+        name: Content-Type
+        description: Content type
+        schema:
+          type: string
+          enum: [application/json]
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            Location:
+              schema: {type: string}
+              description: 'Relative URL of the subscription. Example: /sap/ems/v1/events/subscriptions/subscription-name'
+        '400':
+          description: For invalid payload
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidSubscriptionName'}
+                invalidWebhookAuth: {$ref: '#/components/examples/invalidWebhookAuth'}
+        '401':
+          description: In case of invalid credentails
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '409':
+          description: For duplicate subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                duplicateSubscription: {$ref: '#/components/examples/duplicateSubscription'}
+      callbacks:
+        handshakeOnCreateSubscription:
+          '{$request.body#/webhookUrl}':
+            options:
+              parameters:
+              - in: header
+                name: WebHook-Request-Origin
+                description: Enterprise Messaging service host URL
+                schema: {type: string}
+              responses:
+                '204':
+                  description: Accept handshake request
+                  headers:
+                    WebHook-Allowed-Origin:
+                      description: For successful completion of handshake, response must be either '*' or same value provided for header WebHook-Request-Origin in request
+                      schema: {type: string}
+        eventDelivery:
+          '{$request.body#/webhookUrl}':
+            post:
+              parameters:
+              - in: header
+                name: Content-Type
+                description: Service can deliver event in either structured or binary mode. When event is delivered in structured mode the value of Content-Type header is 'application/cloudevents+json'. In structured mode only json event format is used. When event is delivered in binary mode value of Content-Type header can be any other rfc-2046 media type.
+                schema:
+                  type: string
+                  enum: [application/cloudevents+json, AnyRFC2046ComplaintMediatype]
+              - in: header
+                name: Content-Length
+                description: Content length in bytes
+                schema: {type: number}
+              - in: header
+                name: ce-specversion
+                description: Specifies the cloud events version. Value is not null. Only spec 1.0 is supported. This header is provided only when event is delivered in binary mode.
+                schema:
+                  type: string
+                  enum: ['1.0']
+              - in: header
+                name: ce-source
+                description: Specifies event source. Value is not null. This header is provided only when event is delivered in binary mode.
+                schema: {$ref: '#/components/schemas/ce-source'}
+              - in: header
+                name: ce-type
+                description: Specifies event type. Value is not null. This header is provided only when event is delivered in binary mode.
+                schema: {$ref: '#/components/schemas/ce-type'}
+              - in: header
+                name: ce-id
+                description: Specifies event id. Value is not null. This header is provided only when event is delivered in binary mode.
+                schema: {type: string}
+              - in: header
+                name: ce-subject
+                description: Specifies event subject. Value is not null. This header is provided only when event is delivered in binary mode.
+                schema: {type: string}
+              - in: header
+                name: ce-dataschema
+                description: Specifies the data schema of events data. This header is provided if event is published with data schema property. This header is provided only when event is delivered in binary mode.
+                schema: {type: string}
+              - in: header
+                name: ce-time
+                description: specifies event time. This header is provided if event is published with time property. This header is provided only when event is delivered in binary mode.
+                schema: {type: string}
+              - in: header
+                name: ce-{extension-attribute-name}
+                description: Extension attributes of the event. Extension attributes are provided when event is published with any extension attribute. Pattern for extension attribute name is ^[a-z0-9]{1,20}$. These headers are provided only when event is delivered in binary mode.
+                schema: {type: string}
+              requestBody:
+                description: Event properties and data.
+                content:
+                  application/cloudevents+json:
+                    schema: {$ref: '#/components/schemas/cloudEventStructured'}
+                    examples:
+                      cloudEventStructured: {$ref: '#/components/examples/cloudEventStructured'}
+                  any-rfc-2046-media-type:
+                    schema: {type: string, format: binary}
+                    examples:
+                      binaryCloudEvent: {$ref: '#/components/examples/binaryCloudEvent'}
+              responses:
+                '200': {description: Indicates positive acknowledgement of event delivery.}
+                '201': {description: Indicates positive acknowledgement of event delivery.}
+                '202': {description: Indicates positive acknowledgement of event delivery.}
+                '500': {description: Indicates negative acknowledgement of event delivery. In case the webhook is created with quality of service "AT-LEAST-ONCE" service redelivers the event until webhook responds with positive acknowledgement.}
+    get:
+      summary: Get subscriptions
+      description: Get all webhook subscriptions and the settings.
+      tags: [Webhook Subscriptions to Cloud Events]
+      responses:
+        '200':
+          description: List of all webhook subscriptions, or an empty array if none exists. Credentials are omitted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/subscriptionsList'}
+              examples:
+                subscriptionsList: {$ref: '#/components/examples/subscriptionsList'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+  /events/subscriptions/{subscriptionName}:
+    parameters:
+    - in: path
+      name: subscriptionName
+      description: Subscription name
+      schema: {type: string}
+      required: true
+    get:
+      summary: Get subscription by name
+      description: Get the webhook subscription and settings by name of the subscription.
+      tags: [Webhook Subscriptions to Cloud Events]
+      responses:
+        '200':
+          description: Subscription details. Credentials are omitted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/subscriptionInfo'}
+              examples:
+                subscriptionInfo: {$ref: '#/components/examples/subscriptionInfo'}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidSubscriptionName'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                subscriptionNotFound: {$ref: '#/components/examples/subscriptionNotFound'}
+    delete:
+      summary: Delete subscription by name
+      description: Delete the webhook subscription by name of the subscription.
+      tags: [Webhook Subscriptions to Cloud Events]
+      responses:
+        '204': {description: Subscription deleted successfully}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidSubscriptionName'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                subscriptionNotFound: {$ref: '#/components/examples/subscriptionNotFound'}
+    patch:
+      summary: Update subscriptions's auth
+      description: Updates given webhook's auth. This operation is allowed only when webhook is paused. Also allowed only when previous update operation is completed.
+      tags: [Webhook Subscriptions to Cloud Events]
+      requestBody:
+        description: Updates security schema of the given webhook.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/webhookAuth'}
+            examples:
+              webhookAuthBasic: {$ref: '#/components/examples/webhookAuthBasic'}
+              webhookAuthOauth2WithClientSecret: {$ref: '#/components/examples/webhookAuthOAuth2'}
+              webhookAuthReferCredentials: {$ref: '#/components/examples/webhookAuthCredentialRef'}
+      responses:
+        '200': {description: Successfully updated webhook}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidAuth'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                subscriptionNotFound: {$ref: '#/components/examples/subscriptionNotFound'}
+  /events/subscriptions/{subscriptionName}/handshake:
+    parameters:
+    - in: path
+      name: subscriptionName
+      description: Subscription name
+      schema: {type: string}
+      required: true
+    post:
+      summary: Trigger a handshake request to subscription's webhook endpoint
+      description: Triggers handshake request on the webhook with given name. This API may change the handshake status of the webhook.
+      tags: [Webhook Subscriptions to Cloud Events]
+      responses:
+        '204': {description: Handshake triggered}
+        '400':
+          description: For invalid subscription name
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidSubscriptionName'}
+        '401':
+          description: In case of invalid credentials
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                subscriptionNotFound: {$ref: '#/components/examples/subscriptionNotFound'}
+  /events/subscriptions/{subscriptionName}/state:
+    parameters:
+    - in: path
+      name: subscriptionName
+      description: Subscription name
+      schema: {type: string}
+      required: true
+    put:
+      summary: Update the state of subscription, i.e. pause or resume the subscription
+      description: Subscriptions can be paused or activated with this API. Message delivery is stopped if the subscription is paused.
+      tags: [Webhook Subscriptions to Cloud Events]
+      requestBody:
+        description: The desired action to change subscription state.
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/stateChangeAction'}
+            examples:
+              subscription-pause: {$ref: '#/components/examples/subscription-pause'}
+              subscription-resume: {$ref: '#/components/examples/subscription-resume'}
+      responses:
+        '202':
+          description: Subscription paused or resumed
+          headers:
+            Location:
+              schema: {type: string}
+              description: 'Relative URL of the subscription. Example: /sap/ems/v1/events/subscriptions/subscription-name'
+        '400':
+          description: For invalid subscription name, or if action property is missing
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidSubscriptionName: {$ref: '#/components/examples/invalidSubscriptionName'}
+        '401':
+          description: In case of invalid credentials.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                invalidCredentials: {$ref: '#/components/examples/invalidCredentials'}
+        '404':
+          description: When no subscription with given name is found.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+              examples:
+                subscriptionNotFound: {$ref: '#/components/examples/subscriptionNotFound'}
+        '409':
+          description: If handshake is not complete and resume subscription is attempted.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/errorResponse'}
+components:
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: This API uses OAuth 2 with client credentials flow.
+      flows:
+        clientCredentials:
+          tokenUrl: https://{subdomain(identity_zone)}.authentication.{host}/oauth/token
+          scopes: {}
+  schemas:
+    ce-source: {type: string, pattern: '^\/(?!ce\/)([a-zA-Z0-9][a-zA-Z0-9\.\-]{0,8}[a-zA-Z0-9])\/(?!ce\/)(?!ce$)(?=.{1,15}(\/|$))([a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+)(?=.{0,37}$)(?!\/ce$)(\/([a-zA-Z0-9]([a-zA-Z0-9\.\-]*[a-zA-Z0-9])*$)|$)'}
+    ce-type: {type: string, pattern: '^(?=^.{10,83}$)([a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+)\.([a-zA-Z][a-zA-Z0-9]+)\.([a-zA-Z][a-zA-Z0-9]+)\.(v[0-9]+)$'}
+    cloudEventStructured:
+      properties:
+        specversion:
+          type: string
+          enum: ['1.0']
+        source: {$ref: '#/components/schemas/ce-source'}
+        type: {$ref: '#/components/schemas/ce-type'}
+        id: {type: string}
+        datacontenttype: {type: string}
+        dataschema: {type: string}
+        subject: {type: string}
+        time: {type: string}
+        data: {type: object}
+        ^[a-z0-9]{1,20}$: {type: string}
+      required: [specversion, source, type, id]
+    errorResponse:
+      properties:
+        error: {$ref: '#/components/schemas/error'}
+    error:
+      properties:
+        code: {type: string}
+        message: {type: string}
+    subscription:
+      properties:
+        name: {type: string, pattern: '^[a-zA-Z0-9\._-]{1,50}$'}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/event'}
+        webhookUrl: {type: string}
+        webhookAuth:
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuth'}
+          - {$ref: '#/components/schemas/clientCredentialsAuth'}
+          - {$ref: '#/components/schemas/credentialRef'}
+        qos:
+          type: string
+          enum: [AT-MOST-ONCE, AT-LEAST-ONCE]
+        exemptHandshake: {type: boolean}
+      required: [name, events, webhookUrl]
+    webhookAuth:
+      properties:
+        webhookAuth:
+          type: object
+          oneOf:
+          - {$ref: '#/components/schemas/basicAuth'}
+          - {$ref: '#/components/schemas/clientCredentialsAuth'}
+          - {$ref: '#/components/schemas/credentialRef'}
+    credentialRef:
+      properties:
+        type:
+          type: string
+          enum: [credential-ref]
+        credentialName: {type: string}
+      required: [type, credentialName]
+    basicAuth:
+      properties:
+        type:
+          type: string
+          enum: [basic]
+        user: {type: string}
+        password: {type: string}
+      required: [type, user, password]
+    clientCredentialsAuth:
+      properties:
+        type:
+          type: string
+          enum: [oAuth2]
+        grantType:
+          type: string
+          enum: [client_credentials]
+        clientId: {type: string}
+        clientSecret: {type: string}
+        tokenUrl: {type: string}
+      required: [type, grantType, clientId, clientSecret, tokenUrl]
+    subscriptionsList:
+      type: array
+      items: {$ref: '#/components/schemas/subscriptionInfo'}
+    subscriptionInfo:
+      properties:
+        name: {type: string}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/event'}
+        webhookUrl: {type: string}
+        qos:
+          type: string
+          enum: [AT-MOST-ONCE, AT-LEAST-ONCE]
+        exemptHandshake: {type: boolean}
+        createdOn: {type: string, format: date-time}
+        lastUpdateStatus:
+          type: string
+          enum: [in progress, completed, failed]
+        lastUpdatedOn: {type: string, format: date-time}
+        handshakeStatus:
+          type: string
+          enum: [Not Initiated, Requested, Completed, Failed, Exempted]
+        subscriptionStatus:
+          type: string
+          enum: [Active, Paused]
+        subscriptionStatusReason: {type: string}
+        lastSuccessfulDelivery: {type: string, format: date-time}
+        lastFailedDelivery: {type: string, format: date-time}
+        lastFailedDeliveryReason: {type: string}
+    stateChangeAction:
+      properties:
+        action:
+          type: string
+          enum: [pause, resume]
+      required: [action]
+    event:
+      properties:
+        source: {type: string}
+        type: {type: string}
+  examples:
+    invalidCredentials:
+      summary: Invalid credentials
+      value:
+        error: {code: UNAUTHORIZED, message: Unauthorized}
+    invalidSpecVersion:
+      summary: Invalid spec version
+      value:
+        error: {code: INVALID_INPUT, message: Invalid spec version.}
+    invalidQOS:
+      summary: Invalid qos
+      value:
+        error: {code: INVALID_INPUT, message: Invalid value for qos}
+    subscriptionNotFound:
+      summary: webhook subscription with given name not found
+      value:
+        error: {code: NOT_FOUND, message: webhook subscription with given name not found}
+    invalidSubscriptionName:
+      summary: invalid subscription name
+      value:
+        error: {code: INVALID_INPUT, message: 'subscription name is invalid. Allowed pattern ^[a-zA-Z0-9\._-]{1,50}'}
+    invalidAuth:
+      summary: webhook auth schema is not valid
+      value:
+        error: {code: INVALID_INPUT, message: webhook auth schema is not valid}
+    binaryCloudEvent: {summary: A binary event, value: Any binary event data}
+    invalidWebhookAuth:
+      summary: Invalid auth schema for webhook
+      value:
+        error: {code: INVALID_INPUT, message: Provided auth schema for webhook is invalid}
+    duplicateSubscription:
+      summary: Duplicate subscription name
+      value:
+        error: {code: CONFLICT, message: subscription with given name already exists.}
+    subscriptionCreated:
+      summary: Subscription created
+      value: {href: 'https://{host}/sap/ems/v1/events/subscriptions/subscription-name.'}
+    subscriptionNoAuth:
+      summary: A subscription whose webhook endpoint does not require authentication.
+      value:
+        name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook.com/events
+        qos: AT-LEAST-ONCE
+        exemptHandshake: false
+    subscriptionBasicAuth:
+      summary: A subscription whose webhook endpoint requires basic authentication.
+      value:
+        name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook.com/events
+        webhookAuth: {type: basic, user: xxxxx, password: xxxxx}
+        qos: AT-LEAST-ONCE
+        exemptHandshake: false
+    webhookAuthBasic:
+      summary: A webhook auth with basic authentication
+      value:
+        webhookAuth: {type: basic, user: user, password: password}
+    subscriptionOAuth2ClientCredentials:
+      summary: A subscription whose webhook endpoint requires OAuth2 client_credentials authentication
+      value:
+        name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook/events
+        webhookAuth: {type: oauth2, grantType: client_credentials, clientId: xxxxxx, clientSecret: xxxxxx, tokenUrl: 'https://my-uaa.com/oauth/token'}
+        qos: AT-LEAST-ONCE
+        exemptHandshake: false
+    webhookAuthOAuth2:
+      summary: A webhook auth with OAuth2 authentication
+      value:
+        webhookAuth: {type: oauth2, grantType: client_credentials, clientId: xxxxxx, clientSecret: xxxxxx, tokenUrl: 'https://my-uaa.com/oauth/token'}
+    subscriptionCredentialRef:
+      summary: A subscription whose webhook endpoint credentials are taken from previously uploaded credentials
+      value:
+        name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook/events
+        webhookAuth: {type: credential-ref, credentialName: cred-name}
+        qos: AT-LEAST-ONCE
+        exemptHandshake: false
+    webhookAuthCredentialRef:
+      summary: A webhook auth with refering to previously uploaded credentials authentication
+      value:
+        webhookAuth: {type: credential-ref, credentialName: cred-name}
+    subscriptionInfo:
+      summary: Webhook information
+      value:
+        name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook.com/events
+        qos: AT-MOST-ONCE
+        exemptHandshake: true
+        createdOn: '2020-08-21T10:20:17.830Z'
+        lastUpdateStatus: completed
+        lastUpdatedOn: '2020-08-21T10:20:17.830Z'
+        handshakeStatus: Not Initiated
+        subscriptionStatus: Active
+        subscriptionStatusReason: ''
+        lastSuccessfulDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDeliveryReason: webhook responded with 401
+    subscriptionsList:
+      summary: List of webhooks created
+      value:
+      - name: SubcriptionBusinessPartnerEvents
+        events:
+        - {source: /default/sap.s4hana, type: BusinessPartener.Changed.v1}
+        - {source: /default/sap.s4hana, type: BusinessPartener.Created.v1}
+        webhookUrl: https://my-webhook.com/events
+        qos: AT-MOST-ONCE
+        exemptHandshake: true
+        createdOn: '2020-08-21T10:20:17.830Z'
+        handshakeStatus: Not Initiated
+        subscriptionStatus: Active
+        lastUpdateStatus: completed
+        lastUpdatedOn: '2020-08-21T10:20:17.830Z'
+        subscriptionStatusReason: ''
+        lastSuccessfulDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDeliveryReason: webhook responded with 401
+      - name: SubcriptionSalesOrderEvents
+        events:
+        - {source: /default/sap.s4hana, type: SalesOrder.Changed.v1}
+        - {source: /default/sap.s4hana, type: SalesOrder.Created.v1}
+        webhookUrl: https://my-webhook.com/events
+        qos: AT-MOST-ONCE
+        exemptHandshake: true
+        createdOn: '2020-08-21T10:20:17.830Z'
+        lastUpdateStatus: completed
+        lastUpdatedOn: '2020-08-21T10:20:17.830Z'
+        handshakeStatus: Not Initiated
+        subscriptionStatus: Active
+        subscriptionStatusReason: ''
+        lastSuccessfulDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDelivery: '2020-08-21T10:20:17.830Z'
+        lastFailedDeliveryReason: webhook responded with 500
+    cloudEventStructured:
+      summary: A strucutred cloud event
+      value:
+        specversion: '1.0'
+        source: /default/sap.billing.sb
+        type: sap.billing.sb.Subscription.Created.v1
+        id: 05022092-B698-444E-9F8B-A0B4605F163C
+        time: '2019-10-31 07:55:51'
+        datacontenttype: application/json
+        subject: subject
+        dataschema: http://xxxxxxx
+        data:
+          subscriptionId: 5F330DE1-2178-4DBF-8333-E493400287FA
+          eventType: created
+          eventLogEntryId: 00A51461-8850-4AB8-A21B-96FAEF62451C
+          changedSubscriptionAspects: []
+    subscription-pause:
+      summary: Request payload to pause a subscription
+      value: {action: pause}
+    subscription-resume:
+      summary: Request payload to resume a subscription
+      value: {action: resume}
+    subscription-state-changed:
+      summary: Subscription paused or resumed
+      value: {href: 'https://{host}/sap/cp/ems/v1/events/subscriptions/subscription-name'}
