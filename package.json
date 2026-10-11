@@ -1,6 +1,6 @@
 {
   "name": "sap-integration-suite-mcp-server",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A production-ready Model Context Protocol (MCP) server for the SAP Integration Suite, providing unified access to Cloud Integration, API Management, Event Mesh, Integration Assessment, Open Connectors, and Edge Integration Cell.",
   "author": "Ridvan Polat <rp@ridvanpolat.com>",
   "type": "module",
