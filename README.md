@@ -1,11 +1,14 @@
 # SAP Integration Suite MCP Server
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg)](https://nodejs.org/)
-[![Docker](https://img.shields.io/badge/Docker-Node%2024--alpine-blue.svg)](Dockerfile)
-[![Protocol](https://img.shields.io/badge/MCP-1.12.1-orange.svg)](https://modelcontextprotocol.io/)
-[![Vitest](https://img.shields.io/badge/Tests-129%2F129%20Passed-brightgreen.svg)](https://vitest.dev/)
-[![License](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/sap-integration-suite-mcp-server.svg?style=flat-square&color=cb3837)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/sap-integration-suite-mcp-server.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
+[![npm provenance](https://img.shields.io/npm/v/sap-integration-suite-mcp-server?provenance=true&style=flat-square&color=brightgreen)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg?style=flat-square)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Node%2024--alpine-blue.svg?style=flat-square)](Dockerfile)
+[![Protocol](https://img.shields.io/badge/MCP-1.12.1-orange.svg?style=flat-square)](https://modelcontextprotocol.io/)
+[![Vitest](https://img.shields.io/badge/Tests-129%2F129%20Passed-brightgreen.svg?style=flat-square)](https://vitest.dev/)
+[![License](https://img.shields.io/badge/License-Apache--2.0-yellow.svg?style=flat-square)](LICENSE)
 
 An enterprise-grade, production-ready **Model Context Protocol (MCP)** server for the **SAP Integration Suite**. Built on the official `@modelcontextprotocol/sdk` using the higher-level `McpServer` abstraction, this server unifies access across six distinct SAP components. With a fully decoupled architecture, it supports multiple transports—**Standard Input/Output (STDIO)**, **Server-Sent Events (SSE)**, and modern **Streamable HTTP**—enabling AI agents (such as Claude Desktop, Cursor IDE, VS Code, and Zed) to securely inspect, monitor, diagnose, and manage mission-critical SAP integration landscapes.
 

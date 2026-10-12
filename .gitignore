@@ -4,3 +4,5 @@ dist/
 *.tsbuildinfo
 coverage/
 .DS_Store
+PROMPT.md
+UPDATE.md
