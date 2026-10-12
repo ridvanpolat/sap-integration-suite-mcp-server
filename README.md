@@ -1,8 +1,6 @@
 # SAP Integration Suite MCP Server
 
-[![npm version](https://img.shields.io/npm/v/sap-integration-suite-mcp-server.svg?style=flat-square&color=cb3837)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
-[![npm downloads](https://img.shields.io/npm/dm/sap-integration-suite-mcp-server.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
-[![npm provenance](https://img.shields.io/npm/v/sap-integration-suite-mcp-server?provenance=true&style=flat-square&color=brightgreen)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
+[![npm version](https://img.shields.io/npm/v/sap-integration-suite-mcp-server.svg?style=flat-square&color=brightgreen)](https://www.npmjs.com/package/sap-integration-suite-mcp-server)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg?style=flat-square)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Node%2024--alpine-blue.svg?style=flat-square)](Dockerfile)
