@@ -482,10 +482,12 @@ The server provides a production-grade multi-stage `Dockerfile` based on `node:2
 - **Security**: Runs under the unprivileged `node` user with non-root permissions.
 - **Flexible Entrypoints**: Supports running in STDIO, SSE, or Streamable HTTP modes.
 
-### 1. Build the Docker Image
+### 1. Pull the Docker Image from GHCR
+
+The server is distributed as a pre-built container image via the GitHub Container Registry.
 
 ```bash
-docker build -t sap-integration-suite-mcp-server:latest .
+docker pull ghcr.io/ridvanpolat/sap-integration-suite-mcp-server:latest
 ```
 
 ### 2. Run Container in STDIO Mode
@@ -493,7 +495,7 @@ docker build -t sap-integration-suite-mcp-server:latest .
 ```bash
 docker run -i --rm \
   --env-file .env \
-  sap-integration-suite-mcp-server:latest
+  ghcr.io/ridvanpolat/sap-integration-suite-mcp-server:latest
 ```
 
 ### 3. Run Container in SSE Mode (Port 3000)
@@ -503,7 +505,7 @@ docker run -d --rm \
   --name sap-mcp-sse \
   -p 3000:3000 \
   --env-file .env \
-  sap-integration-suite-mcp-server:latest \
+  ghcr.io/ridvanpolat/sap-integration-suite-mcp-server:latest \
   node dist/sse.js
 ```
 
@@ -521,7 +523,7 @@ docker run -d --rm \
   -p 3001:3001 \
   -e PORT=3001 \
   --env-file .env \
-  sap-integration-suite-mcp-server:latest \
+  ghcr.io/ridvanpolat/sap-integration-suite-mcp-server:latest \
   node dist/streamable-http.js
 ```
 
