@@ -2,11 +2,12 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Node%2024--alpine-blue.svg)](Dockerfile)
 [![Protocol](https://img.shields.io/badge/MCP-1.12.1-orange.svg)](https://modelcontextprotocol.io/)
-[![Vitest](https://img.shields.io/badge/Tests-115%2F115%20Passed-brightgreen.svg)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Tests-129%2F129%20Passed-brightgreen.svg)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
 
-An enterprise-grade, production-ready **Model Context Protocol (MCP)** server for the **SAP Integration Suite**. Built on the official `@modelcontextprotocol/sdk` using the higher-level `McpServer` abstraction and `StdioServerTransport`, this server enables AI agents (such as Claude Desktop, Cursor IDE, VS Code, and Zed) to securely inspect, monitor, diagnose, and manage mission-critical SAP integration landscapes.
+An enterprise-grade, production-ready **Model Context Protocol (MCP)** server for the **SAP Integration Suite**. Built on the official `@modelcontextprotocol/sdk` using the higher-level `McpServer` abstraction, this server unifies access across six distinct SAP components. With a fully decoupled architecture, it supports multiple transports—**Standard Input/Output (STDIO)**, **Server-Sent Events (SSE)**, and modern **Streamable HTTP**—enabling AI agents (such as Claude Desktop, Cursor IDE, VS Code, and Zed) to securely inspect, monitor, diagnose, and manage mission-critical SAP integration landscapes.
 
 ---
 
@@ -14,6 +15,7 @@ An enterprise-grade, production-ready **Model Context Protocol (MCP)** server fo
 
 - [Architectural Overview](#architectural-overview)
 - [Supported SAP Domains](#supported-sap-domains)
+- [Multi-Transport Architecture (STDIO, SSE, Streamable HTTP)](#multi-transport-architecture-stdio-sse-streamable-http)
 - [Enterprise Resilience & Security Core](#enterprise-resilience--security-core)
 - [Environment Configuration & Strict Namespacing](#environment-configuration--strict-namespacing)
   - [Domain Activation Mechanism](#domain-activation-mechanism)
@@ -28,15 +30,18 @@ An enterprise-grade, production-ready **Model Context Protocol (MCP)** server fo
 - [Getting Started & Build Commands](#getting-started--build-commands)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+  - [Available Scripts](#available-scripts)
   - [Local Development & Typecheck](#local-development--typecheck)
   - [Running the Test Suite](#running-the-test-suite)
   - [Building for Production](#building-for-production)
   - [Generating Types & Metadata from OpenAPI Specs](#generating-types--metadata-from-openapi-specs)
+- [Docker & Containerization](#docker--containerization)
 - [MCP Client Configuration Guide](#mcp-client-configuration-guide)
   - [Claude Desktop](#claude-desktop)
   - [Cursor IDE](#cursor-ide)
   - [VS Code (Cline / Roo Code / Claude Dev)](#vs-code-cline--roo-code--claude-dev)
   - [Zed Editor](#zed-editor)
+  - [Remote / Network Clients (SSE & Streamable HTTP)](#remote--network-clients-sse--streamable-http)
 - [Security & Compliance](#security--compliance)
 - [License](#license)
 
@@ -46,15 +51,26 @@ An enterprise-grade, production-ready **Model Context Protocol (MCP)** server fo
 
 Connecting large language models directly to heterogeneous enterprise systems presents significant challenges: complex OData payloads, multiple authentication protocols, stateful CSRF token handshakes, context window limits, and transport pollution.
 
-The **SAP Integration Suite MCP Server** acts as an intelligent intermediary and unified protocol gateway:
+The **SAP Integration Suite MCP Server** decouples core business logic from transport bindings, acting as a modular, unified protocol gateway:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                   AI Clients (Claude, Cursor, Zed, VS Code)            │
 └───────────────────────────────────▲────────────────────────────────────┘
-                                    │ Model Context Protocol (STDIO)
-┌───────────────────────────────────▼────────────────────────────────────┐
-│                  SAP Integration Suite MCP Server                      │
+                                    │
+         ┌──────────────────────────┼──────────────────────────┐
+         │ STDIO (JSON-RPC)         │ SSE (HTTP+SSE)           │ Streamable HTTP
+         ▼                          ▼                          ▼
+   ┌────────────┐            ┌─────────────┐            ┌──────────────┐
+   │ src/index  │            │ src/sse     │            │ src/streamable│
+   │ (dist/index)            │ (dist/sse)  │            │ -http        │
+   └─────┬──────┘            └──────┬──────┘            └──────┬───────┘
+         │                          │                          │
+         └──────────────────────────┼──────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│            Decoupled MCP Core Logic & Dynamic Registry (`src/app.ts`)  │
 │                                                                        │
 │   ┌────────────────────────────────────────────────────────────────┐   │
 │   │ Dynamic Registry & Selective Domain Loader                     │   │
@@ -82,6 +98,35 @@ The **SAP Integration Suite MCP Server** acts as an intelligent intermediary and
 │  [Integration Assessment]  [Open Connectors]  [Edge Integration Cell]  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Multi-Transport Architecture (STDIO, SSE, Streamable HTTP)
+
+The server supports three distinct transport modes, allowing flexible deployment across local developer desktops, network gateways, container runtimes, and remote AI workflows:
+
+### 1. Standard Input/Output (`STDIO`) — `src/index.ts`
+- **Default for Local AI Clients**: Ideal for Claude Desktop, Cursor IDE, VS Code (Cline), and Zed running as child processes.
+- **Protocol**: Raw JSON-RPC 2.0 frames over `stdin` and `stdout`.
+- **Cleanliness**: Enforces strict STDIO hygiene; zero application logging to stdout.
+
+### 2. Server-Sent Events (`SSE`) — `src/sse.ts`
+- **HTTP-Exposed Transport**: Exposes the MCP server over HTTP using Server-Sent Events, enabling remote or web-based MCP client connections.
+- **Endpoints**:
+  - `GET /sse` (and alias `GET /mcp`): Establishes the downstream SSE event stream.
+  - `POST /messages`: Handles incoming client JSON-RPC requests routed by `sessionId`.
+  - `GET /health`: Health probe returning server status and active session count.
+- **Port**: Configurable via `PORT` or `MCP_PORT` (default `3000`). Host via `HOST` (default `0.0.0.0`).
+
+### 3. Streamable HTTP — `src/streamable-http.ts`
+- **Modern MCP Specification (2025-11-25)**: Modern streamable HTTP transport providing bidirectional streaming, resumability, and stateful session tracking.
+- **Endpoints**:
+  - `POST /mcp`: Handles session initialization and incoming JSON-RPC calls.
+  - `GET /mcp`: SSE notification streaming for the active session.
+  - `DELETE /mcp`: Explicit session termination.
+  - `GET /health`: Health probe returning server status and active session count.
+- **Features**: Includes automatic idle session reaping (30-minute timeout) and connection tracking.
+- **Port**: Configurable via `PORT` or `MCP_PORT` (default `3001`). Host via `HOST` (default `0.0.0.0`).
 
 ---
 
@@ -333,13 +378,39 @@ cd sap-integration-suite-mcp-server
 npm install
 ```
 
+### Available Scripts
+
+The project includes purpose-built scripts for development, testing, and production across all transports:
+
+| Command | Transport / Target | Description |
+|---|---|---|
+| `npm run start:stdio` | STDIO (Production) | Runs the compiled server over STDIO (`node dist/index.js`) |
+| `npm run start:sse` | SSE (Production) | Runs the compiled server over SSE (`node dist/sse.js`) |
+| `npm run start:streamable-http` | Streamable HTTP (Prod) | Runs compiled server over Streamable HTTP (`node dist/streamable-http.js`) |
+| `npm run dev:stdio` | STDIO (TypeScript) | Runs STDIO mode using `ts-node` (`ts-node src/index.ts`) |
+| `npm run dev:sse` | SSE (TypeScript) | Runs SSE mode using `ts-node` (`ts-node src/sse.ts`) |
+| `npm run dev:streamable-http` | Streamable HTTP (TS) | Runs Streamable HTTP mode using `ts-node` (`ts-node src/streamable-http.ts`) |
+| `npm run run:stdio` | STDIO (Dev Reload) | Live-reloading STDIO runner using `ts-node-dev` |
+| `npm run run:sse` | SSE (Dev Reload) | Live-reloading SSE runner using `ts-node-dev` |
+| `npm run run:streamable-http` | Streamable HTTP (Reload)| Live-reloading Streamable HTTP runner using `ts-node-dev` |
+| `npm run dev` | STDIO (tsx) | Fast local development runner using `tsx` |
+| `npm test` | Testing | Runs test suite once using Vitest (`vitest run`) |
+| `npm run test:watch` | Testing | Runs tests in interactive watch mode (`vitest`) |
+| `npm run lint` | Typecheck | Static type checking with `tsc --noEmit` |
+| `npm run build` | Build | Compiles TypeScript source to `dist/` (`tsc`) |
+| `npm run generate` | Code Generation | Re-generates TypeScript types and Zod metadata from `/specs` |
+
 ### Local Development & Typecheck
 
-Run the server directly with TypeScript execution (`tsx`):
+Run the server directly with TypeScript execution:
 
 ```bash
-# Start server in development mode
+# Start server in development mode (STDIO)
 npm run dev
+
+# Or run with live-reloading in SSE or Streamable HTTP mode
+npm run run:sse
+npm run run:streamable-http
 
 # Perform static type checking
 npm run lint
@@ -347,7 +418,7 @@ npm run lint
 
 ### Running the Test Suite
 
-The test suite contains **115 automated unit and integration tests** built with Vitest and MSW (Mock Service Worker), providing complete coverage of OAuth2 flows, CSRF token handshakes, pagination, payload truncation, and error states without making external network calls:
+The test suite contains **129 automated unit and integration tests** across **10 test suites** built with Vitest and MSW (Mock Service Worker), providing complete coverage of OAuth2 flows, CSRF token handshakes, transport entry points (STDIO, SSE, Streamable HTTP), pagination, payload truncation, and error states without making external network calls:
 
 ```bash
 # Run test suite once
@@ -359,6 +430,9 @@ npm run test:watch
 
 Test coverage summary:
 - `tests/core/apiClient.test.ts` (26 tests)
+- `tests/core/app.test.ts` (4 tests)
+- `tests/core/sse.test.ts` (3 tests)
+- `tests/core/streamable-http.test.ts` (7 tests)
 - `tests/domains/CloudIntegration.test.ts` (15 tests)
 - `tests/domains/APIManagement.test.ts` (13 tests)
 - `tests/domains/EventMesh.test.ts` (12 tests)
@@ -374,10 +448,17 @@ Compile TypeScript to JavaScript in the `dist` directory:
 npm run build
 ```
 
-Verify the production build runs cleanly:
+Verify production entry points run cleanly:
 
 ```bash
-node dist/index.js
+# STDIO entry point
+npm run start:stdio
+
+# SSE entry point (http://localhost:3000/sse)
+npm run start:sse
+
+# Streamable HTTP entry point (http://localhost:3001/mcp)
+npm run start:streamable-http
 ```
 
 ### Generating Types & Metadata from OpenAPI Specs
@@ -389,6 +470,65 @@ npm run generate
 ```
 
 This updates `src/generated/{Domain}/metadata.ts` with operations, entities, and enums used for strict runtime validation.
+
+---
+
+## Docker & Containerization
+
+The server provides a production-grade multi-stage `Dockerfile` based on `node:24-alpine`:
+- **Node.js 24 Alpine Base**: Lightweight, secure container base.
+- **Multi-Stage Build**: Development dependencies and TypeScript tooling are discarded in the final image.
+- **Security**: Runs under the unprivileged `node` user with non-root permissions.
+- **Flexible Entrypoints**: Supports running in STDIO, SSE, or Streamable HTTP modes.
+
+### 1. Build the Docker Image
+
+```bash
+docker build -t sap-integration-suite-mcp-server:latest .
+```
+
+### 2. Run Container in STDIO Mode
+
+```bash
+docker run -i --rm \
+  --env-file .env \
+  sap-integration-suite-mcp-server:latest
+```
+
+### 3. Run Container in SSE Mode (Port 3000)
+
+```bash
+docker run -d --rm \
+  --name sap-mcp-sse \
+  -p 3000:3000 \
+  --env-file .env \
+  sap-integration-suite-mcp-server:latest \
+  node dist/sse.js
+```
+
+Check health status:
+```bash
+curl http://localhost:3000/health
+# {"status":"ok","transport":"sse","activeSessions":0}
+```
+
+### 4. Run Container in Streamable HTTP Mode (Port 3001)
+
+```bash
+docker run -d --rm \
+  --name sap-mcp-http \
+  -p 3001:3001 \
+  -e PORT=3001 \
+  --env-file .env \
+  sap-integration-suite-mcp-server:latest \
+  node dist/streamable-http.js
+```
+
+Check health status:
+```bash
+curl http://localhost:3001/health
+# {"status":"ok","transport":"streamable-http","activeSessions":0}
+```
 
 
 ---
@@ -508,6 +648,60 @@ In Zed, add the context server definition to your `settings.json`:
           "SAP_CPI_CLIENT_SECRET": "your-client-secret"
         }
       }
+    }
+  }
+}
+```
+
+### Remote / Network Clients (SSE & Streamable HTTP)
+
+When running the MCP server inside Docker, a remote Kubernetes pod, or as a background service, clients can connect directly over HTTP without managing child processes:
+
+#### Server-Sent Events (SSE) Endpoint
+
+Start the server using `npm run start:sse` (or Docker port 3000):
+
+```json
+{
+  "mcpServers": {
+    "sap-integration-suite-sse": {
+      "url": "http://localhost:3000/sse"
+    }
+  }
+}
+```
+
+#### Streamable HTTP Endpoint
+
+Start the server using `npm run start:streamable-http` (or Docker port 3001):
+
+```json
+{
+  "mcpServers": {
+    "sap-integration-suite-http": {
+      "url": "http://localhost:3001/mcp"
+    }
+  }
+}
+```
+
+#### Docker Container (STDIO Pass-Through)
+
+You can also run the containerized server directly through any MCP client supporting child process STDIO:
+
+```json
+{
+  "mcpServers": {
+    "sap-integration-suite": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--env-file",
+        "/path/to/.env",
+        "sap-integration-suite-mcp-server:latest"
+      ]
     }
   }
 }
