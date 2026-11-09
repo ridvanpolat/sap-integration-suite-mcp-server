@@ -16,6 +16,7 @@
  *   - Zero STDIO pollution: routes all logs through MCP logging callback
  */
 
+import { createHash } from "node:crypto";
 import type { EnvConfig } from "../config/env.js";
 
 // ---------------------------------------------------------------------------
@@ -127,6 +128,15 @@ export interface RequestOptions {
   skipCsrf?: boolean;
   /** Skip OData unwrapping and return raw response */
   skipUnwrap?: boolean;
+  /**
+   * Response handling mode:
+   *   - "auto" (default): JSON bodies are parsed, everything else is read as text.
+   *   - "binary": successful bodies are read as raw bytes and returned as a
+   *     base64 {@link BinaryPayload} (e.g. artifact ZIP downloads via `$value`).
+   */
+  responseType?: "auto" | "binary";
+  /** Maximum accepted body size in bytes for binary responses (unbounded if omitted). */
+  maxResponseBytes?: number;
 }
 
 export interface ApiResponse<T = unknown> {
@@ -143,6 +153,20 @@ export interface ApiResponse<T = unknown> {
   totalCount?: number;
   /** Next page link or token ($skiptoken or @odata.nextLink) */
   nextPageToken?: string;
+  /** Fully resolved request URL (useful for resolving relative pagination links) */
+  url?: string;
+}
+
+/** Raw binary body returned when a request uses `responseType: "binary"`. */
+export interface BinaryPayload {
+  /** Base64-encoded response body */
+  base64: string;
+  /** Response Content-Type (defaults to application/octet-stream) */
+  contentType: string;
+  /** Body size in bytes */
+  sizeBytes: number;
+  /** Hex-encoded SHA-256 digest of the body */
+  sha256: string;
 }
 
 export interface McpToolResult {
@@ -624,6 +648,13 @@ export class SapApiClient {
 
     const headers = await this.buildBaseHeaders();
 
+    const isBinary = options.responseType === "binary";
+
+    // Binary downloads (e.g. `$value`) must not advertise JSON-only acceptance
+    if (isBinary) {
+      headers["Accept"] = "*/*";
+    }
+
     // Merge custom headers
     if (options.headers) {
       Object.assign(headers, options.headers);
@@ -687,6 +718,12 @@ export class SapApiClient {
       this.invalidateCsrfToken();
       // Retry once with allowCsrfRetry = false to prevent infinite loops
       return this.executeWithRetry<T>(options, false);
+    }
+
+    // Binary bodies are read as raw bytes; error bodies still go through the
+    // regular JSON/text parsing below so SAP error messages are preserved.
+    if (isBinary && response.ok) {
+      return this.readBinaryResponse<T>(response, targetUrl, method, options.maxResponseBytes);
     }
 
     // Parse response body
@@ -765,6 +802,7 @@ export class SapApiClient {
         headers: responseHeaders,
         data: responseData as T,
         raw: responseData,
+        url: targetUrl,
       };
     }
 
@@ -779,6 +817,72 @@ export class SapApiClient {
       hasMore: unwrapped.hasMore,
       totalCount: unwrapped.totalCount,
       nextPageToken: unwrapped.nextPageToken,
+      url: targetUrl,
+    };
+  }
+
+  /**
+   * Reads a successful response body as raw bytes, enforcing an optional size
+   * cap while streaming so oversized payloads are never fully buffered.
+   */
+  private async readBinaryResponse<T>(
+    response: Response,
+    targetUrl: string,
+    method: HttpMethod,
+    maxBytes?: number,
+  ): Promise<ApiResponse<T>> {
+    const tooLarge = (size: number | string) =>
+      new SapApiError({
+        message: `Response body exceeds the ${maxBytes} byte export limit (${size} bytes)`,
+        status: 413,
+        statusText: "Payload Too Large",
+        url: targetUrl,
+        method,
+      });
+
+    const declaredLength = Number(response.headers.get("content-length"));
+    // Cancellation is fire-and-forget: some stream sources never settle cancel().
+    if (maxBytes !== undefined && Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+      response.body?.cancel().catch(() => {});
+      throw tooLarge(declaredLength);
+    }
+
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    if (response.body) {
+      const reader = response.body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (maxBytes !== undefined && total > maxBytes) {
+          reader.cancel().catch(() => {});
+          throw tooLarge(`> ${maxBytes}`);
+        }
+        chunks.push(value);
+      }
+    }
+
+    const body = Buffer.concat(chunks, total);
+    const payload: BinaryPayload = {
+      base64: body.toString("base64"),
+      contentType: response.headers.get("content-type") || "application/octet-stream",
+      sizeBytes: total,
+      sha256: createHash("sha256").update(body).digest("hex"),
+    };
+
+    const responseHeaders: Record<string, string> = {};
+    response.headers.forEach((val, key) => {
+      responseHeaders[key] = val;
+    });
+
+    return {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders,
+      data: payload as T,
+      raw: null,
+      url: targetUrl,
     };
   }
 

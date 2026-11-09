@@ -210,7 +210,36 @@ cp .env.example .env
 | **Global Settings** | | |
 | `SAP_MAX_RESULTS` | Maximum records returned per array query (Default: `50`) | `50` |
 | `LOG_LEVEL` | Logging verbosity: `debug`, `info`, `warn`, `error` (Default: `info`) | `info` |
+| `MCP_ENABLE_EXPORT_TOOL` | Registers the read-only `sap_export_get` tool for automated pipelines (Default: `false`) | `true` |
+| `SAP_EXPORT_MAX_BYTES` | Maximum response size returned by `sap_export_get`, in bytes (Default: `15728640` = 15 MB) | `15728640` |
 
+
+---
+
+## Read-Only Export Tool for Automated Pipelines (`sap_export_get`)
+
+The semantic tools are tuned for LLM context windows: they truncate arrays to `SAP_MAX_RESULTS` and decode every non-JSON body as text. Automated consumers need complete, unmodified data instead (full OData pages, iFlow ZIPs via `$value`), so the server can expose one additional tool. It is **opt-in**: it is registered only when `MCP_ENABLE_EXPORT_TOOL=true`, so interactive clients keep the curated semantic tool set by default.
+
+| Argument | Description |
+|---|---|
+| `domain` | One of `cloud-integration`, `api-management`, `event-mesh`, `integration-assessment`, `open-connectors`, `edge-integration-cell`. Must be configured on the server. |
+| `path` | Path relative to the domain base URL, e.g. `/api/v1/IntegrationDesigntimeArtifacts(Id='Flow_1',Version='active')/$value`. Mutually exclusive with `nextLink`. |
+| `nextLink` | Absolute pagination link from a previous result. It must share the domain's origin and base path. |
+| `query` | Query parameters (`$filter`, `$top`, `$expand`, `$select`, …). Not allowed together with `nextLink`. |
+| `format` | `json` (default) returns `{ status, data, nextLink }` as text with the untruncated body; `binary` returns a base64 MCP `resource` blob plus `{ status, contentType, sizeBytes, sha256 }` metadata. |
+| `maxBytes` | Optional per-call size limit, capped by `SAP_EXPORT_MAX_BYTES`. |
+
+Guarantees:
+
+- **GET only.** No CSRF handshakes and no mutating verbs.
+- **Confined paths.**
+  - A path must start with `/`.
+  - It must not contain a host or scheme, traversal segments (`.`, `..`, or percent-encoded variants), `?`, `#`, `\`, whitespace or control characters.
+  - Query parameters go through `query`.
+- **Size caps.** Binary bodies are streamed and rejected once they exceed the limit (`[PAYLOAD_TOO_LARGE]`, HTTP 413 semantics).
+- **Stable error markers.** `[DOMAIN_NOT_CONFIGURED]`, `[INVALID_REQUEST]` and `[PAYLOAD_TOO_LARGE]` prefix error texts so pipelines can branch on them.
+
+> Clients that share a server with interactive LLM agents should hide `sap_export_get` from the agent's tool list, because raw pages and base64 archives are not suitable for chat context.
 
 ---
 

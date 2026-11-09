@@ -14,6 +14,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadEnvConfig, getActiveDomains, type EnvConfig } from "./config/env.js";
 import { registerActiveDomains } from "./core/registry.js";
+import { EXPORT_TOOL_NAME, registerExportTool } from "./core/export.js";
 
 // ---------------------------------------------------------------------------
 // Server-safe logging helper
@@ -94,6 +95,12 @@ export async function createServer(
 
   // 4. Dynamically register active domains
   await registerActiveDomains(server, activeDomains, log);
+
+  // 5. Optional read-only export tool for automated pipelines (opt-in)
+  if (config.exportTool?.enabled === true && activeDomains.length > 0) {
+    registerExportTool(server, config, activeDomains, log);
+    log("info", `Registered ${EXPORT_TOOL_NAME} (read-only export tool for automated pipelines)`);
+  }
 
   return server;
 }

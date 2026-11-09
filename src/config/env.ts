@@ -47,6 +47,23 @@ const OcEnvSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Read-only export tool (sap_export_get) for automated pipelines
+// Disabled by default so interactive (LLM) clients keep the semantic tool set.
+// ---------------------------------------------------------------------------
+export const DEFAULT_EXPORT_MAX_BYTES = 15 * 1024 * 1024;
+
+const ExportToolEnvSchema = z.object({
+  enabled: z.preprocess(
+    (val) => (typeof val === "string" ? ["1", "true", "yes", "on"].includes(val.trim().toLowerCase()) : val),
+    z.boolean().default(false),
+  ),
+  maxBytes: z.preprocess(
+    (val) => (val !== undefined && val !== "" ? Number(val) : undefined),
+    z.number().int().positive().default(DEFAULT_EXPORT_MAX_BYTES),
+  ),
+});
+
+// ---------------------------------------------------------------------------
 // Composite schema — validated once at startup
 // ---------------------------------------------------------------------------
 const EnvSchema = z.object({
@@ -68,6 +85,8 @@ const EnvSchema = z.object({
     z.number().int().positive().default(50),
   ),
   logLevel: LogLevel,
+  // Read-only export tool (MCP_ENABLE_EXPORT_TOOL / SAP_EXPORT_MAX_BYTES)
+  exportTool: ExportToolEnvSchema.default({}),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
@@ -115,6 +134,10 @@ function mapProcessEnv(): z.input<typeof EnvSchema> {
     },
     maxResults: e["SAP_MAX_RESULTS"] !== undefined ? e["SAP_MAX_RESULTS"] : undefined,
     logLevel: (e["LOG_LEVEL"] as "debug" | "info" | "warn" | "error" | undefined),
+    exportTool: {
+      enabled: e["MCP_ENABLE_EXPORT_TOOL"],
+      maxBytes: e["SAP_EXPORT_MAX_BYTES"],
+    },
   };
 }
 
